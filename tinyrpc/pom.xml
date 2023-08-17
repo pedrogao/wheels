@@ -9,16 +9,66 @@
   </parent>
 
   <artifactId>tinyrpc</artifactId>
-  <packaging>jar</packaging>
+  <version>1.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
 
   <name>tinyrpc</name>
+
+  <modules>
+    <module>example</module>
+    <module>framework</module>
+  </modules>
 
   <properties>
     <maven.compiler.source>19</maven.compiler.source>
     <maven.compiler.target>19</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <netty.version>4.1.86.Final</netty.version>
+    <fastjson.version>2.0.32</fastjson.version>
+    <jboss-marshalling-river.version>1.4.11.Final</jboss-marshalling-river.version>
+    <jboss-marshalling-serial.version>1.4.11.Final</jboss-marshalling-serial.version>
+    <slf4j-api.version>1.7.13</slf4j-api.version>
+    <javassist.version>3.29.2-GA</javassist.version>
   </properties>
 
   <dependencies>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-all</artifactId>
+      <version>${netty.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.javassist</groupId>
+      <artifactId>javassist</artifactId>
+      <version>${javassist.version}</version>
+    </dependency>
+
+
+    <!--    <dependency>-->
+    <!--      <groupId>org.slf4j</groupId>-->
+    <!--      <artifactId>slf4j-api</artifactId>-->
+    <!--      <version>${slf4j-api.version}</version>-->
+    <!--    </dependency>-->
+
+    <dependency>
+      <groupId>com.alibaba</groupId>
+      <artifactId>fastjson</artifactId>
+      <version>${fastjson.version}</version>
+    </dependency>
+
+    <!--序列化 接收方工具-->
+    <dependency>
+      <groupId>org.jboss.marshalling</groupId>
+      <artifactId>jboss-marshalling-river</artifactId>
+      <version>${jboss-marshalling-river.version}</version>
+    </dependency>
+
+    <!--序列化 处理工具-->
+    <dependency>
+      <groupId>org.jboss.marshalling</groupId>
+      <artifactId>jboss-marshalling-serial</artifactId>
+      <version>${jboss-marshalling-serial.version}</version>
+    </dependency>
   </dependencies>
 </project>
