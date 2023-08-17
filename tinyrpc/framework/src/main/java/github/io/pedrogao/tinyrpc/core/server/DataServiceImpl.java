@@ -1,6 +1,6 @@
 package github.io.pedrogao.tinyrpc.core.server;
 
-import github.io.pedrogao.tinyrpc.core.interfaces.DataService;
+import github.io.pedrogao.tinyrpc.interfaces.DataService;
 
 import java.util.Arrays;
 import java.util.List;

@@ -6,7 +6,7 @@ import github.io.pedrogao.tinyrpc.core.common.RpcEncoder;
 import github.io.pedrogao.tinyrpc.core.common.RpcInvocation;
 import github.io.pedrogao.tinyrpc.core.common.RpcProtocol;
 import github.io.pedrogao.tinyrpc.core.common.config.ClientConfig;
-import github.io.pedrogao.tinyrpc.core.interfaces.DataService;
+import github.io.pedrogao.tinyrpc.interfaces.DataService;
 import github.io.pedrogao.tinyrpc.core.proxy.jdk.JDKProxyFactory;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;

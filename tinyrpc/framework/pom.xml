@@ -20,5 +20,10 @@
   </properties>
 
   <dependencies>
+    <dependency>
+      <groupId>github.io.pedrogao</groupId>
+      <artifactId>interface</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
   </dependencies>
 </project>

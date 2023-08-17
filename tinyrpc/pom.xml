@@ -17,6 +17,9 @@
   <modules>
     <module>example</module>
     <module>framework</module>
+    <module>interface</module>
+    <module>consumer</module>
+    <module>provider</module>
   </modules>
 
   <properties>

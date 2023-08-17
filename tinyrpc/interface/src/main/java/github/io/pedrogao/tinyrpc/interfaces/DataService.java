@@ -1,4 +1,4 @@
-package github.io.pedrogao.tinyrpc.core.interfaces;
+package github.io.pedrogao.tinyrpc.interfaces;
 
 import java.util.List;
 
