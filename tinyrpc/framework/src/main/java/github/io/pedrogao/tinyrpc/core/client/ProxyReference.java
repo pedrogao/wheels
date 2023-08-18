@@ -2,11 +2,11 @@ package github.io.pedrogao.tinyrpc.core.client;
 
 import github.io.pedrogao.tinyrpc.core.proxy.ProxyFactory;
 
-public class RpcReference {
+public class ProxyReference {
 
     private final ProxyFactory proxyFactory;
 
-    public RpcReference(ProxyFactory proxyFactory) {
+    public ProxyReference(ProxyFactory proxyFactory) {
         this.proxyFactory = proxyFactory;
     }
 

@@ -1,8 +1,14 @@
 package github.io.pedrogao.tinyrpc.core.server;
 
+import com.google.common.collect.Maps;
 import github.io.pedrogao.tinyrpc.core.common.RpcDecoder;
 import github.io.pedrogao.tinyrpc.core.common.RpcEncoder;
+import github.io.pedrogao.tinyrpc.core.common.config.PropertiesBootstrap;
 import github.io.pedrogao.tinyrpc.core.common.config.ServerConfig;
+import github.io.pedrogao.tinyrpc.core.common.utils.CommonUtils;
+import github.io.pedrogao.tinyrpc.core.registry.RegistryService;
+import github.io.pedrogao.tinyrpc.core.registry.URL;
+import github.io.pedrogao.tinyrpc.core.registry.zookeeper.ZookeeperRegister;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -11,27 +17,39 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 import static github.io.pedrogao.tinyrpc.core.common.cache.CommonServerCache.PROVIDER_CLASS_MAP;
+import static github.io.pedrogao.tinyrpc.core.common.cache.CommonServerCache.PROVIDER_URL_SET;
 
 public class Server {
     final Logger log = LoggerFactory.getLogger(Server.class);
 
-    private EventLoopGroup bossGroup;
-    private EventLoopGroup workerGroup;
     private ServerConfig serverConfig;
+    private RegistryService registryService;
+    private final ScheduledExecutorService registryScheduler = Executors.newScheduledThreadPool(1);
 
     private void startApplication() throws InterruptedException {
-        bossGroup = new NioEventLoopGroup();
-        workerGroup = new NioEventLoopGroup();
-        ServerBootstrap bootstrap = new ServerBootstrap();
+        registryService = new ZookeeperRegister(serverConfig.getRegisterAddr());
+        registerServices();
+        listen();
+    }
+
+    private void listen() throws InterruptedException {
+        final EventLoopGroup bossGroup = new NioEventLoopGroup();
+        final EventLoopGroup workerGroup = new NioEventLoopGroup();
+        final ServerBootstrap bootstrap = new ServerBootstrap();
         bootstrap.group(bossGroup, workerGroup);
         bootstrap.channel(NioServerSocketChannel.class);
-        bootstrap.childOption(ChannelOption.TCP_NODELAY, true);
-        bootstrap.option(ChannelOption.SO_BACKLOG, 1024);
-        bootstrap.childOption(ChannelOption.SO_SNDBUF, 16 * 1024)
-                .option(ChannelOption.SO_RCVBUF, 16 * 1024)
-                .childOption(ChannelOption.SO_KEEPALIVE, true);
 
+        bootstrap.childOption(ChannelOption.TCP_NODELAY, true).
+                option(ChannelOption.SO_BACKLOG, 1024).
+                childOption(ChannelOption.SO_SNDBUF, 16 * 1024).
+                option(ChannelOption.SO_RCVBUF, 16 * 1024).
+                childOption(ChannelOption.SO_KEEPALIVE, true);
         bootstrap.childHandler(new ChannelInitializer<SocketChannel>() {
             @Override
             protected void initChannel(SocketChannel channel) throws Exception {
@@ -42,8 +60,41 @@ public class Server {
                 channel.pipeline().addLast(new ServerHandler());
             }
         });
-        bootstrap.bind(serverConfig.getPort()).sync();
+        bootstrap.bind(serverConfig.getServerPort()).sync();
         log.info("Server started!");
+    }
+
+    private void registerServices() {
+        log.info("Register services start");
+        registryScheduler.schedule(() -> {
+            for (URL url : PROVIDER_URL_SET) {
+                registryService.register(url); // register service url to registry center
+            }
+        }, serverConfig.getRegistryInterval(), TimeUnit.MILLISECONDS);
+    }
+
+    public void registerService(Object serviceBean) {
+        if (serviceBean.getClass().getInterfaces().length == 0) {
+            throw new IllegalArgumentException("service must had interfaces!");
+        }
+
+        Class<?>[] classes = serviceBean.getClass().getInterfaces();
+        if (classes.length > 1) {
+            throw new IllegalArgumentException("service must only had one interface!");
+        }
+        Class<?> interfaceClass = classes[0]; // first implement interface
+        PROVIDER_CLASS_MAP.put(interfaceClass.getName(), serviceBean);
+
+        URL url = new URL(
+                serverConfig.getApplicationName(),
+                interfaceClass.getName(),
+                Maps.newHashMap(Map.of("host", CommonUtils.getIpAddress(), "port", String.valueOf(serverConfig.getServerPort())))
+        );
+        PROVIDER_URL_SET.add(url);
+    }
+
+    public void loadServerConfig() {
+        setServerConfig(PropertiesBootstrap.loadServerConfigFromLocal());
     }
 
     private void setServerConfig(ServerConfig serverConfig) {
@@ -54,27 +105,11 @@ public class Server {
         return serverConfig;
     }
 
-    private void registryService(Object serviceBean) {
-        if (serviceBean.getClass().getInterfaces().length == 0) {
-            throw new IllegalArgumentException("service must implement interface");
-        }
-        Class<?>[] classes = serviceBean.getClass().getInterfaces();
-        if (classes.length > 1) {
-            throw new IllegalArgumentException("service must implement only one interface");
-        }
-
-        Class<?> interfaceClass = classes[0];
-        PROVIDER_CLASS_MAP.put(interfaceClass.getName(), serviceBean);
-    }
-
     public static void main(String[] args) throws InterruptedException {
         final var server = new Server();
-        final ServerConfig serverConfig = new ServerConfig();
-        serverConfig.setPort(1009);
 
-        server.setServerConfig(serverConfig);
-        server.registryService(new DataServiceImpl());
-        server.startApplication();
+        server.loadServerConfig(); // load server config
+        server.registerService(new DataServiceImpl()); // register data service
+        server.startApplication(); // start server application
     }
-
 }

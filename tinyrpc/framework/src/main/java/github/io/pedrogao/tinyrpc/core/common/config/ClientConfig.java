@@ -1,22 +1,31 @@
 package github.io.pedrogao.tinyrpc.core.common.config;
 
 public class ClientConfig {
-    private String serverAddr;
-    private int port;
+    private String proxyType;
+    private String registerAddr;
+    private String applicationName;
 
-    public String getServerAddr() {
-        return serverAddr;
+    public String getProxyType() {
+        return proxyType;
     }
 
-    public void setServerAddr(String serverAddr) {
-        this.serverAddr = serverAddr;
+    public void setProxyType(String proxyType) {
+        this.proxyType = proxyType;
     }
 
-    public int getPort() {
-        return port;
+    public String getRegisterAddr() {
+        return registerAddr;
     }
 
-    public void setPort(int port) {
-        this.port = port;
+    public void setRegisterAddr(String registerAddr) {
+        this.registerAddr = registerAddr;
+    }
+
+    public String getApplicationName() {
+        return applicationName;
+    }
+
+    public void setApplicationName(String applicationName) {
+        this.applicationName = applicationName;
     }
 }
