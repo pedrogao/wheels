@@ -17,6 +17,8 @@ public class SimpleBeanFactory extends DefaultSingletonBeanRegistry implements B
 
     private final Map<String, BeanDefinition> beanDefinitionMap = new ConcurrentHashMap<>(256);
 
+    private final Map<String, Object> earlySingletonObjects = new ConcurrentHashMap<>();
+
     private final List<String> beanDefinitionNames = new ArrayList<>();
 
     public SimpleBeanFactory() {
@@ -24,21 +26,31 @@ public class SimpleBeanFactory extends DefaultSingletonBeanRegistry implements B
 
     @Override
     public Object getBean(String beanName) throws BeansException {
+        // get from singleton cache
         Object singleton = getSingleton(beanName);
         if (singleton != null) {
             return singleton;
         }
 
+        // get from early singleton cache
+        singleton = earlySingletonObjects.get(beanName);
+        if (singleton != null)
+            return singleton;
+
+        // if none, create & register then return
         BeanDefinition beanDefinition = beanDefinitionMap.get(beanName);
         if (beanDefinition == null) {
-            throw new BeansException("No bean named '" + beanName + "' is defined");
+            throw new BeansException("No such bean definition: " + beanName);
         }
+
         singleton = createBean(beanDefinition);
         registerBean(beanName, singleton);
+
         if (beanDefinition.getInitMethodName() != null) {
             // TODO do when init method is defined
         }
-        return singletons;
+
+        return singleton;
     }
 
     @Override
@@ -97,13 +109,42 @@ public class SimpleBeanFactory extends DefaultSingletonBeanRegistry implements B
         return beanDefinitionMap.containsKey(name);
     }
 
+    public void refresh() {
+        for (String beanName : beanDefinitionNames) {
+            try {
+                getBean(beanName);
+            } catch (BeansException e) {
+                log.error("Refreshing get bean " + beanName + " error", e);
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
     private Object createBean(BeanDefinition bd) {
-        Class<?> clz = null;
-        Object obj = null;
-        Constructor<?> con = null;
+        Class<?> clz;
+
+        Object obj = doCreateBean(bd);
+        earlySingletonObjects.put(bd.getId(), obj);
 
         try {
             clz = Class.forName(bd.getClassName());
+        } catch (ClassNotFoundException e) {
+            log.error("Create bean error", e);
+            throw new RuntimeException(e);
+        }
+
+        // handle properties
+        handleProperties(bd, clz, obj);
+        return obj;
+    }
+
+    private Object doCreateBean(BeanDefinition bd) {
+        Class<?> clz;
+        Object obj = null;
+        Constructor<?> con;
+        try {
+            clz = Class.forName(bd.getClassName());
+
             // handle constructor
             ArgumentValues argumentValues = bd.getConstructorArgumentValues();
             if (!argumentValues.isEmpty()) {
@@ -135,12 +176,14 @@ public class SimpleBeanFactory extends DefaultSingletonBeanRegistry implements B
             } else {
                 obj = clz.newInstance();
             }
-
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
             log.error("Instantiation or illegal access or class not found exception", e);
         }
 
-        // handle properties
+        return obj;
+    }
+
+    private void handleProperties(BeanDefinition bd, Class<?> clz, Object obj) {
         PropertyValues propertyValues = bd.getPropertyValues();
         if (!propertyValues.isEmpty()) {
             for (int i = 0; i < propertyValues.size(); i++) {
@@ -148,36 +191,45 @@ public class SimpleBeanFactory extends DefaultSingletonBeanRegistry implements B
                 String pName = propertyValue.getName();
                 String pType = propertyValue.getType();
                 Object pValue = propertyValue.getValue();
-
+                boolean isRef = propertyValue.isRef();
                 Class<?>[] paramTypes = new Class<?>[1];
-                if ("String".equals(pType) || "java.lang.String".equals(pType)) {
-                    paramTypes[0] = String.class;
-                } else if ("Integer".equals(pType) || "java.lang.Integer".equals(pType)) {
-                    paramTypes[0] = Integer.class;
-                } else if ("int".equals(pType)) {
-                    paramTypes[0] = int.class;
+                Object[] paramValues = new Object[1];
+                if (!isRef) {
+                    if ("String".equals(pType) || "java.lang.String".equals(pType)) {
+                        paramTypes[0] = String.class;
+                    } else if ("Integer".equals(pType) || "java.lang.Integer".equals(pType)) {
+                        paramTypes[0] = Integer.class;
+                    } else if ("int".equals(pType)) {
+                        paramTypes[0] = int.class;
+                    } else {
+                        paramTypes[0] = String.class;
+                    }
+                    paramValues[0] = pValue;
                 } else {
-                    paramTypes[0] = String.class;
+                    // handle reference
+                    try {
+                        paramTypes[0] = Class.forName(pType);
+                        paramValues[0] = getBean((String) pValue);
+                    } catch (ClassNotFoundException | BeansException e) {
+                        log.error("Handle reference error", e);
+                        throw new RuntimeException(e);
+                    }
                 }
 
-                Object[] paramValues = new Object[1];
-                paramValues[0] = pValue;
                 String methodName = "set" + pName.substring(0, 1).toUpperCase() + pName.substring(1);
                 Method method = null;
                 try {
                     method = clz.getMethod(methodName, paramTypes);
                 } catch (NoSuchMethodException | SecurityException e) {
-                    log.error("No such method or security exception", e);
+                    log.error("No such method " + methodName + " or security exception", e);
                 }
                 try {
                     method.invoke(obj, paramValues);
                 } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
                     log.error("Illegal access or illegal argument or invocation target exception", e);
                 }
-
             }
         }
-        return obj;
     }
 
 }

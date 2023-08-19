@@ -10,6 +10,11 @@ public class AServiceImpl implements AService {
 
     private int level;
 
+    private BaseService ref1;
+
+    public AServiceImpl() {
+    }
+
     public AServiceImpl(String name, int level) {
         this.name = name;
         this.level = level;
@@ -23,8 +28,12 @@ public class AServiceImpl implements AService {
         this.property2 = property2;
     }
 
+    public void setRef1(BaseService ref1) {
+        this.ref1 = ref1;
+    }
+
     @Override
     public void sayHello() {
-        System.out.println("hello");
+        System.out.println("hello" + name + level + property1 + property2);
     }
 }

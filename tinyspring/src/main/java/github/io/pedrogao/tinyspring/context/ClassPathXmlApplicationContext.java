@@ -9,13 +9,20 @@ import org.slf4j.LoggerFactory;
 public class ClassPathXmlApplicationContext implements BeanFactory, ApplicationEventPublisher {
     private final Logger log = LoggerFactory.getLogger(ClassPathXmlApplicationContext.class);
 
-    private final SimpleBeanFactory beanFactory;
+    private SimpleBeanFactory beanFactory;
 
     public ClassPathXmlApplicationContext(String filename) {
+        this(filename, true);
+    }
+
+    public ClassPathXmlApplicationContext(String filename, boolean isRefresh) {
         Resource resource = new ClassPathXmlResource(filename);
         beanFactory = new SimpleBeanFactory();
         XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(beanFactory);
         reader.loadBeanDefinitions(resource);
+        if (isRefresh) {
+            beanFactory.refresh();
+        }
     }
 
     public Object getBean(String beanName) throws BeansException {
