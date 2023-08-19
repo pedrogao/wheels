@@ -19,6 +19,7 @@
   <modules>
     <module>tinyrpc</module>
     <module>tinynetty</module>
+    <module>tinyspring</module>
   </modules>
 
 
