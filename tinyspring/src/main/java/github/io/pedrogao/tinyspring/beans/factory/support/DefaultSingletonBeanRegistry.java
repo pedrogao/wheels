@@ -1,4 +1,6 @@
-package github.io.pedrogao.tinyspring.beans;
+package github.io.pedrogao.tinyspring.beans.factory.support;
+
+import github.io.pedrogao.tinyspring.beans.factory.config.SingletonBeanRegistry;
 
 import java.util.ArrayList;
 import java.util.List;

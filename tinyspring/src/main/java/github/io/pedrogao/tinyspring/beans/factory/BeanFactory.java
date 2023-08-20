@@ -1,4 +1,6 @@
-package github.io.pedrogao.tinyspring.beans;
+package github.io.pedrogao.tinyspring.beans.factory;
+
+import github.io.pedrogao.tinyspring.beans.BeansException;
 
 public interface BeanFactory {
     Object getBean(String beanName) throws BeansException;

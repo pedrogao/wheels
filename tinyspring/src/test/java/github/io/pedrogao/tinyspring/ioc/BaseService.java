@@ -1,6 +1,10 @@
 package github.io.pedrogao.tinyspring.ioc;
 
+import github.io.pedrogao.tinyspring.beans.factory.annotation.Autowired;
+
 public class BaseService {
+
+    @Autowired
     private BaseBaseService bbs;
 
     public BaseService(BaseBaseService bbs) {

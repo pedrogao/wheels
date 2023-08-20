@@ -1,5 +1,13 @@
-package github.io.pedrogao.tinyspring.beans;
+package github.io.pedrogao.tinyspring.beans.factory;
 
+import github.io.pedrogao.tinyspring.beans.BeansException;
+import github.io.pedrogao.tinyspring.beans.PropertyValue;
+import github.io.pedrogao.tinyspring.beans.PropertyValues;
+import github.io.pedrogao.tinyspring.beans.factory.config.BeanDefinition;
+import github.io.pedrogao.tinyspring.beans.factory.config.ConstructorArgumentValue;
+import github.io.pedrogao.tinyspring.beans.factory.config.ConstructorArgumentValues;
+import github.io.pedrogao.tinyspring.beans.factory.support.BeanDefinitionRegistry;
+import github.io.pedrogao.tinyspring.beans.factory.support.DefaultSingletonBeanRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,9 +19,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class SimpleBeanFactory extends DefaultSingletonBeanRegistry implements BeanFactory, BeanDefinitionRegistry {
-
-    private final Logger log = LoggerFactory.getLogger(SimpleBeanFactory.class);
+public abstract class AbstractBeanFactory extends DefaultSingletonBeanRegistry implements BeanFactory, BeanDefinitionRegistry {
+    private final Logger log = LoggerFactory.getLogger(AbstractBeanFactory.class);
 
     private final Map<String, BeanDefinition> beanDefinitionMap = new ConcurrentHashMap<>(256);
 
@@ -21,7 +28,7 @@ public class SimpleBeanFactory extends DefaultSingletonBeanRegistry implements B
 
     private final List<String> beanDefinitionNames = new ArrayList<>();
 
-    public SimpleBeanFactory() {
+    public AbstractBeanFactory() {
     }
 
     @Override
@@ -46,11 +53,27 @@ public class SimpleBeanFactory extends DefaultSingletonBeanRegistry implements B
         singleton = createBean(beanDefinition);
         registerBean(beanName, singleton);
 
+        applyBeanPostProcessorBeforeInitialization(singleton, beanName);
         if (beanDefinition.getInitMethodName() != null) {
-            // TODO do when init method is defined
+            invokeInitMethod(beanDefinition, singleton);
         }
+        applyBeanPostProcessorAfterInitialization(singleton, beanName);
 
         return singleton;
+    }
+
+    public abstract Object applyBeanPostProcessorBeforeInitialization(Object obj, String beanName) throws BeansException;
+
+    public abstract Object applyBeanPostProcessorAfterInitialization(Object obj, String beanName) throws BeansException;
+
+    private void invokeInitMethod(BeanDefinition beanDefinition, Object obj) {
+        Class<?> clz = beanDefinition.getClass();
+        try {
+            clz.getMethod(beanDefinition.getInitMethodName()).invoke(obj);
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            log.error("Failed to invoke init method: " + beanDefinition.getInitMethodName(), e);
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -133,8 +156,8 @@ public class SimpleBeanFactory extends DefaultSingletonBeanRegistry implements B
             throw new RuntimeException(e);
         }
 
-        // handle properties
-        handleProperties(bd, clz, obj);
+        // populate bean, eg: properties
+        populateBean(bd, clz, obj);
         return obj;
     }
 
@@ -146,12 +169,12 @@ public class SimpleBeanFactory extends DefaultSingletonBeanRegistry implements B
             clz = Class.forName(bd.getClassName());
 
             // handle constructor
-            ArgumentValues argumentValues = bd.getConstructorArgumentValues();
+            ConstructorArgumentValues argumentValues = bd.getConstructorArgumentValues();
             if (!argumentValues.isEmpty()) {
                 Class<?>[] paramTypes = new Class<?>[argumentValues.getArgumentCount()];
                 Object[] paramValues = new Object[argumentValues.getArgumentCount()];
                 for (int i = 0; i < argumentValues.getArgumentCount(); i++) {
-                    ArgumentValue argumentValue = argumentValues.getIndexedArgumentValue(i);
+                    ConstructorArgumentValue argumentValue = argumentValues.getIndexedArgumentValue(i);
                     if ("String".equals(argumentValue.getType()) || "java.lang.String".equals(argumentValue.getType())) {
                         paramTypes[i] = String.class;
                         paramValues[i] = argumentValue.getValue();
@@ -181,6 +204,10 @@ public class SimpleBeanFactory extends DefaultSingletonBeanRegistry implements B
         }
 
         return obj;
+    }
+
+    private void populateBean(BeanDefinition bd, Class<?> clz, Object obj) {
+        handleProperties(bd, clz, obj);
     }
 
     private void handleProperties(BeanDefinition bd, Class<?> clz, Object obj) {
@@ -231,5 +258,4 @@ public class SimpleBeanFactory extends DefaultSingletonBeanRegistry implements B
             }
         }
     }
-
 }

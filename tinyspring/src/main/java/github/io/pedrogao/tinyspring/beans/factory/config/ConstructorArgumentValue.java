@@ -1,17 +1,17 @@
-package github.io.pedrogao.tinyspring.beans;
+package github.io.pedrogao.tinyspring.beans.factory.config;
 
-public class ArgumentValue {
+public class ConstructorArgumentValue {
     private Object value;
     private String type;
     private String name;
 
-    public ArgumentValue(String type, String name, Object value) {
+    public ConstructorArgumentValue(String type, String name, Object value) {
         this.value = value;
         this.type = type;
         this.name = name;
     }
 
-    public ArgumentValue(String type, Object value) {
+    public ConstructorArgumentValue(String type, Object value) {
         this.value = value;
         this.type = type;
     }

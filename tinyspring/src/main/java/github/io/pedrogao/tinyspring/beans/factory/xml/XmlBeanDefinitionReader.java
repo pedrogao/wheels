@@ -1,5 +1,10 @@
-package github.io.pedrogao.tinyspring.beans;
+package github.io.pedrogao.tinyspring.beans.factory.xml;
 
+import github.io.pedrogao.tinyspring.beans.*;
+import github.io.pedrogao.tinyspring.beans.factory.AbstractBeanFactory;
+import github.io.pedrogao.tinyspring.beans.factory.config.BeanDefinition;
+import github.io.pedrogao.tinyspring.beans.factory.config.ConstructorArgumentValue;
+import github.io.pedrogao.tinyspring.beans.factory.config.ConstructorArgumentValues;
 import github.io.pedrogao.tinyspring.core.Resource;
 import org.dom4j.Element;
 
@@ -7,9 +12,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class XmlBeanDefinitionReader {
-    private final SimpleBeanFactory simpleBeanFactory;
+    private final AbstractBeanFactory simpleBeanFactory;
 
-    public XmlBeanDefinitionReader(SimpleBeanFactory simpleBeanFactory) {
+    public XmlBeanDefinitionReader(AbstractBeanFactory simpleBeanFactory) {
         this.simpleBeanFactory = simpleBeanFactory;
     }
 
@@ -22,12 +27,12 @@ public class XmlBeanDefinitionReader {
                 BeanDefinition beanDefinition = new BeanDefinition(beanId, beanClass);
 
                 List<Element> constructorElements = element.elements("constructor-arg");
-                ArgumentValues argumentValues = new ArgumentValues();
+                ConstructorArgumentValues argumentValues = new ConstructorArgumentValues();
                 for (Element e : constructorElements) {
                     String pType = e.attributeValue("type");
                     String pName = e.attributeValue("name");
                     String pValue = e.attributeValue("value");
-                    argumentValues.addArgumentValue(new ArgumentValue(pType, pName, pValue));
+                    argumentValues.addArgumentValue(new ConstructorArgumentValue(pType, pName, pValue));
                 }
                 beanDefinition.setConstructorArgumentValues(argumentValues);
 

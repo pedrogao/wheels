@@ -1,4 +1,6 @@
-package github.io.pedrogao.tinyspring.beans;
+package github.io.pedrogao.tinyspring.beans.factory.config;
+
+import github.io.pedrogao.tinyspring.beans.PropertyValues;
 
 public class BeanDefinition {
     private final static String SCOPE_SINGLETON = "singleton";
@@ -6,7 +8,7 @@ public class BeanDefinition {
 
     private boolean lazyInit = true;
     private String[] dependsOn;
-    private ArgumentValues constructorArgumentValues;
+    private ConstructorArgumentValues constructorArgumentValues;
     private PropertyValues propertyValues;
     private String initMethodName;
     private volatile Object beanClass;
@@ -51,11 +53,11 @@ public class BeanDefinition {
         this.dependsOn = dependsOn;
     }
 
-    public ArgumentValues getConstructorArgumentValues() {
+    public ConstructorArgumentValues getConstructorArgumentValues() {
         return constructorArgumentValues;
     }
 
-    public void setConstructorArgumentValues(ArgumentValues constructorArgumentValues) {
+    public void setConstructorArgumentValues(ConstructorArgumentValues constructorArgumentValues) {
         this.constructorArgumentValues = constructorArgumentValues;
     }
 

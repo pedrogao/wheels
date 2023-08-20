@@ -1,4 +1,4 @@
-package github.io.pedrogao.tinyspring.beans;
+package github.io.pedrogao.tinyspring.beans.factory.config;
 
 public interface SingletonBeanRegistry {
     void registerSingleton(String beanName, Object bean);

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <beans>
-    <bean id="basebaseservice" class="github.io.pedrogao.tinyspring.ioc.BaseBaseService">
+    <bean id="bbs" class="github.io.pedrogao.tinyspring.ioc.BaseBaseService">
         <property type="github.io.pedrogao.tinyspring.ioc.AServiceImpl" name="as" ref="aservice"></property>
     </bean>
     <bean id="aservice" class="github.io.pedrogao.tinyspring.ioc.AServiceImpl">
@@ -11,6 +11,6 @@
         <property type="github.io.pedrogao.tinyspring.ioc.BaseService" name="ref1" ref="baseservice"/>
     </bean>
     <bean id="baseservice" class="github.io.pedrogao.tinyspring.ioc.BaseService">
-        <property type="github.io.pedrogao.tinyspring.ioc.BaseBaseService" name="bbs" ref="basebaseservice"></property>
+        <!--        <property type="github.io.pedrogao.tinyspring.ioc.BaseBaseService" name="bbs" ref="basebaseservice"></property>-->
     </bean>
 </beans>
