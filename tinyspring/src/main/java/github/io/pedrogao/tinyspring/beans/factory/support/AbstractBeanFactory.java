@@ -1,13 +1,12 @@
-package github.io.pedrogao.tinyspring.beans.factory;
+package github.io.pedrogao.tinyspring.beans.factory.support;
 
 import github.io.pedrogao.tinyspring.beans.BeansException;
 import github.io.pedrogao.tinyspring.beans.PropertyValue;
 import github.io.pedrogao.tinyspring.beans.PropertyValues;
+import github.io.pedrogao.tinyspring.beans.factory.BeanFactory;
 import github.io.pedrogao.tinyspring.beans.factory.config.BeanDefinition;
 import github.io.pedrogao.tinyspring.beans.factory.config.ConstructorArgumentValue;
 import github.io.pedrogao.tinyspring.beans.factory.config.ConstructorArgumentValues;
-import github.io.pedrogao.tinyspring.beans.factory.support.BeanDefinitionRegistry;
-import github.io.pedrogao.tinyspring.beans.factory.support.DefaultSingletonBeanRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,11 +21,12 @@ import java.util.concurrent.ConcurrentHashMap;
 public abstract class AbstractBeanFactory extends DefaultSingletonBeanRegistry implements BeanFactory, BeanDefinitionRegistry {
     private final Logger log = LoggerFactory.getLogger(AbstractBeanFactory.class);
 
-    private final Map<String, BeanDefinition> beanDefinitionMap = new ConcurrentHashMap<>(256);
+    protected final Map<String, BeanDefinition> beanDefinitionMap = new ConcurrentHashMap<>(256);
+
+    protected final List<String> beanDefinitionNames = new ArrayList<>();
 
     private final Map<String, Object> earlySingletonObjects = new ConcurrentHashMap<>();
 
-    private final List<String> beanDefinitionNames = new ArrayList<>();
 
     public AbstractBeanFactory() {
     }
@@ -53,18 +53,14 @@ public abstract class AbstractBeanFactory extends DefaultSingletonBeanRegistry i
         singleton = createBean(beanDefinition);
         registerBean(beanName, singleton);
 
-        applyBeanPostProcessorBeforeInitialization(singleton, beanName);
+        applyBeanPostProcessorsBeforeInitialization(singleton, beanName);
         if (beanDefinition.getInitMethodName() != null) {
             invokeInitMethod(beanDefinition, singleton);
         }
-        applyBeanPostProcessorAfterInitialization(singleton, beanName);
+        applyBeanPostProcessorsAfterInitialization(singleton, beanName);
 
         return singleton;
     }
-
-    public abstract Object applyBeanPostProcessorBeforeInitialization(Object obj, String beanName) throws BeansException;
-
-    public abstract Object applyBeanPostProcessorAfterInitialization(Object obj, String beanName) throws BeansException;
 
     private void invokeInitMethod(BeanDefinition beanDefinition, Object obj) {
         Class<?> clz = beanDefinition.getClass();
@@ -258,4 +254,9 @@ public abstract class AbstractBeanFactory extends DefaultSingletonBeanRegistry i
             }
         }
     }
+
+    public abstract Object applyBeanPostProcessorsBeforeInitialization(Object obj, String beanName) throws BeansException;
+
+    public abstract Object applyBeanPostProcessorsAfterInitialization(Object obj, String beanName) throws BeansException;
+
 }

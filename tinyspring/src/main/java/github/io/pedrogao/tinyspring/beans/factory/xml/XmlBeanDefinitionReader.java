@@ -1,7 +1,7 @@
 package github.io.pedrogao.tinyspring.beans.factory.xml;
 
 import github.io.pedrogao.tinyspring.beans.*;
-import github.io.pedrogao.tinyspring.beans.factory.AbstractBeanFactory;
+import github.io.pedrogao.tinyspring.beans.factory.support.AbstractBeanFactory;
 import github.io.pedrogao.tinyspring.beans.factory.config.BeanDefinition;
 import github.io.pedrogao.tinyspring.beans.factory.config.ConstructorArgumentValue;
 import github.io.pedrogao.tinyspring.beans.factory.config.ConstructorArgumentValues;
