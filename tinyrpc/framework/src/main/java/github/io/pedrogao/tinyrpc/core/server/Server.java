@@ -1,7 +1,7 @@
 package github.io.pedrogao.tinyrpc.core.server;
 
-import github.io.pedrogao.tinyrpc.core.common.RpcDecoder;
-import github.io.pedrogao.tinyrpc.core.common.RpcEncoder;
+import github.io.pedrogao.tinyrpc.core.common.TinyDecoder;
+import github.io.pedrogao.tinyrpc.core.common.TinyEncoder;
 import github.io.pedrogao.tinyrpc.core.common.config.PropertiesBootstrap;
 import github.io.pedrogao.tinyrpc.core.common.config.ServerConfig;
 import github.io.pedrogao.tinyrpc.core.common.utils.CommonUtil;
@@ -30,6 +30,10 @@ public class Server {
     private RegistryService registryService;
     private final ScheduledExecutorService registryScheduler = Executors.newScheduledThreadPool(1);
 
+    public Server(ServerConfig config) {
+        this.serverConfig = config;
+    }
+
     private void startApplication() throws InterruptedException {
         registryService = new ZookeeperRegister(serverConfig.getRegisterAddr());
         registerServicesInRegister();
@@ -53,8 +57,8 @@ public class Server {
             protected void initChannel(SocketChannel channel) throws Exception {
                 log.info("initChannel ch: " + channel);
 
-                channel.pipeline().addLast(new RpcEncoder());
-                channel.pipeline().addLast(new RpcDecoder());
+                channel.pipeline().addLast(new TinyEncoder());
+                channel.pipeline().addLast(new TinyDecoder());
                 channel.pipeline().addLast(new RpcServerHandler());
             }
         });
@@ -69,14 +73,6 @@ public class Server {
                 registryService.register(url); // register service url to registry center
             }
         }, serverConfig.getRegistryInterval(), TimeUnit.MILLISECONDS);
-    }
-
-    public void loadServerConfig() {
-        setServerConfig(PropertiesBootstrap.loadServerConfigFromLocal());
-    }
-
-    private void setServerConfig(ServerConfig serverConfig) {
-        this.serverConfig = serverConfig;
     }
 
     public ServerConfig getServerConfig() {
@@ -100,10 +96,14 @@ public class Server {
     }
 
     public static void main(String[] args) throws InterruptedException {
-        final var server = new Server();
+        final var config = loadServerConfig(); // load server config
+        final var server = new Server(config);
 
-        server.loadServerConfig(); // load server config
         server.registerService(new DataServiceImpl()); // register data service
         server.startApplication(); // start server application
+    }
+
+    public static ServerConfig loadServerConfig() {
+        return PropertiesBootstrap.loadServerConfigFromLocal();
     }
 }

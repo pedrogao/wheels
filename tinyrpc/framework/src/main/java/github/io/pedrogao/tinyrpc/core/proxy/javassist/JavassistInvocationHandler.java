@@ -1,6 +1,6 @@
 package github.io.pedrogao.tinyrpc.core.proxy.javassist;
 
-import github.io.pedrogao.tinyrpc.core.common.RpcInvocation;
+import github.io.pedrogao.tinyrpc.core.common.Invocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,7 +26,7 @@ public class JavassistInvocationHandler implements InvocationHandler {
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        RpcInvocation invocation = new RpcInvocation();
+        Invocation invocation = new Invocation();
         invocation.setTargetServiceName(clazz.getName());
         invocation.setTargetMethod(method.getName());
         invocation.setArgs(args);
@@ -39,8 +39,8 @@ public class JavassistInvocationHandler implements InvocationHandler {
         // 超时设置
         while (System.currentTimeMillis() - beginTime < 3 * 1000) {
             Object result = RESP_MAP.get(invocation.getUuid());
-            if (result instanceof RpcInvocation) {
-                return ((RpcInvocation) result).getResponse();
+            if (result instanceof Invocation) {
+                return ((Invocation) result).getResponse();
             }
         }
         log.error("JavassistInvocationHandler.invoke: timeout");

@@ -2,10 +2,10 @@ package github.io.pedrogao.tinyrpc.core.client;
 
 import com.alibaba.fastjson.JSON;
 import github.io.pedrogao.tinyrpc.core.client.connection.ConnectionManager;
-import github.io.pedrogao.tinyrpc.core.common.RpcDecoder;
-import github.io.pedrogao.tinyrpc.core.common.RpcEncoder;
-import github.io.pedrogao.tinyrpc.core.common.RpcInvocation;
-import github.io.pedrogao.tinyrpc.core.common.RpcProtocol;
+import github.io.pedrogao.tinyrpc.core.common.TinyDecoder;
+import github.io.pedrogao.tinyrpc.core.common.TinyEncoder;
+import github.io.pedrogao.tinyrpc.core.common.Invocation;
+import github.io.pedrogao.tinyrpc.core.common.TinyProtocol;
 import github.io.pedrogao.tinyrpc.core.common.config.ClientConfig;
 import github.io.pedrogao.tinyrpc.core.common.config.PropertiesBootstrap;
 import github.io.pedrogao.tinyrpc.core.common.utils.CommonUtil;
@@ -15,7 +15,6 @@ import github.io.pedrogao.tinyrpc.core.registry.zookeeper.AbstractRegister;
 import github.io.pedrogao.tinyrpc.core.registry.zookeeper.ZookeeperRegister;
 import github.io.pedrogao.tinyrpc.interfaces.DataService;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -54,8 +53,8 @@ public class Client {
         bootstrap.handler(new ChannelInitializer<SocketChannel>() {
             @Override
             protected void initChannel(SocketChannel ch) throws Exception {
-                ch.pipeline().addLast(new RpcEncoder());
-                ch.pipeline().addLast(new RpcDecoder());
+                ch.pipeline().addLast(new TinyEncoder());
+                ch.pipeline().addLast(new TinyDecoder());
                 ch.pipeline().addLast(new RpcClientHandler());
             }
         });
@@ -91,10 +90,10 @@ public class Client {
         Thread asyncSendJob = new Thread(() -> {
             while (true) {
                 try {
-                    RpcInvocation invocation = SEND_QUEUE.take();
-                    RpcProtocol rpcProtocol = new RpcProtocol(JSON.toJSONBytes(invocation));
-                    ChannelFuture channelFuture = connectionManager.getChannelFuture(invocation.getTargetServiceName());
-                    channelFuture.channel().writeAndFlush(rpcProtocol);
+                    Invocation invocation = SEND_QUEUE.take();
+                    TinyProtocol tinyProtocol = new TinyProtocol(JSON.toJSONBytes(invocation));
+
+                    connectionManager.call(invocation.getTargetServiceName(), tinyProtocol);
                 } catch (InterruptedException e) {
                     log.error("Client.asyncSendJob: ", e);
                 }

@@ -2,7 +2,7 @@ package github.io.pedrogao.tinyrpc.core.common;
 
 import java.util.Arrays;
 
-public class RpcInvocation {
+public class Invocation {
     private String targetMethod;
     private String targetServiceName;
     private Object[] args;

@@ -3,14 +3,15 @@ package github.io.pedrogao.tinyrpc.core.client.connection;
 import io.netty.channel.ChannelFuture;
 
 public class ConnectionWrapper {
+    private static final int DEFAULT_WEIGHT = 100;
+
     private ChannelFuture channelFuture;
 
     private String host;
 
     private int port;
 
-    public ConnectionWrapper() {
-    }
+    private int weight = DEFAULT_WEIGHT;
 
     public ConnectionWrapper(ChannelFuture channelFuture, String host, int port) {
         this.channelFuture = channelFuture;
@@ -40,5 +41,13 @@ public class ConnectionWrapper {
 
     public void setPort(int port) {
         this.port = port;
+    }
+
+    public int getWeight() {
+        return weight;
+    }
+
+    public void setWeight(int weight) {
+        this.weight = weight;
     }
 }
