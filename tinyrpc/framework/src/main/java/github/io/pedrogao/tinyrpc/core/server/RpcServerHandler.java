@@ -3,6 +3,7 @@ package github.io.pedrogao.tinyrpc.core.server;
 import com.alibaba.fastjson.JSON;
 import github.io.pedrogao.tinyrpc.core.common.Invocation;
 import github.io.pedrogao.tinyrpc.core.common.protocol.TinyProtocol;
+import github.io.pedrogao.tinyrpc.core.common.serialization.Serializer;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -21,8 +22,9 @@ class RpcServerHandler extends ChannelInboundHandlerAdapter {
         log.info("ServerHandler.channelRead: " + msg);
 
         TinyProtocol tinyProtocol = (TinyProtocol) msg;
-        // TODO serialization type
-        Invocation invocation = JSON.parseObject(tinyProtocol.getContent(), Invocation.class);
+        Serializer serializer = Serializer.getSerializer(tinyProtocol.getSerialization());
+        Invocation invocation = serializer.deserialize(tinyProtocol.getContent(), Invocation.class);
+
         Object targetObject = PROVIDER_CLASS_MAP.get(invocation.getTargetServiceName());
         Method[] methods = targetObject.getClass().getDeclaredMethods();
         Object result = null;
@@ -38,7 +40,7 @@ class RpcServerHandler extends ChannelInboundHandlerAdapter {
         }
         invocation.setResponse(result);
 
-        TinyProtocol response = new TinyProtocol(JSON.toJSONBytes(invocation));
+        TinyProtocol response = new TinyProtocol(serializer.serialize(invocation));
         ctx.writeAndFlush(response);
     }
 

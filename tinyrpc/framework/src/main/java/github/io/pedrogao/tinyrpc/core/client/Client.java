@@ -2,12 +2,14 @@ package github.io.pedrogao.tinyrpc.core.client;
 
 import com.alibaba.fastjson.JSON;
 import github.io.pedrogao.tinyrpc.core.client.connection.ConnectionManager;
+import github.io.pedrogao.tinyrpc.core.common.protocol.SerializationType;
 import github.io.pedrogao.tinyrpc.core.common.protocol.TinyDecoder;
 import github.io.pedrogao.tinyrpc.core.common.protocol.TinyEncoder;
 import github.io.pedrogao.tinyrpc.core.common.Invocation;
 import github.io.pedrogao.tinyrpc.core.common.protocol.TinyProtocol;
 import github.io.pedrogao.tinyrpc.core.common.config.ClientConfig;
 import github.io.pedrogao.tinyrpc.core.common.config.PropertiesBootstrap;
+import github.io.pedrogao.tinyrpc.core.common.serialization.Serializer;
 import github.io.pedrogao.tinyrpc.core.common.utils.CommonUtil;
 import github.io.pedrogao.tinyrpc.core.proxy.ProxyFactory;
 import github.io.pedrogao.tinyrpc.core.registry.URL;
@@ -91,7 +93,8 @@ public class Client {
             while (true) {
                 try {
                     Invocation invocation = SEND_QUEUE.take();
-                    TinyProtocol tinyProtocol = new TinyProtocol(JSON.toJSONBytes(invocation));
+                    Serializer serializer = Serializer.getSerializer(SerializationType.json);
+                    TinyProtocol tinyProtocol = new TinyProtocol(serializer.serialize(invocation));
 
                     connectionManager.call(invocation.getTargetServiceName(), tinyProtocol);
                 } catch (InterruptedException e) {

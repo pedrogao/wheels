@@ -7,7 +7,7 @@ public interface SerializationType {
 
     short jboss = 2;
 
-    short protobuf = 2;
+    short protobuf = 3;
 
     // TODO: add more serialization types
 }
