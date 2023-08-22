@@ -36,6 +36,7 @@ public class JDKClientInvocationHandler implements InvocationHandler {
 
         long beginTime = System.currentTimeMillis();
 
+        // TODO refactor this, Proxy don't need to know the implementation of retry and queue
         // wait for rpc response
         // timeout: 3s
         while (System.currentTimeMillis() - beginTime < 3 * 1000) {

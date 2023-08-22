@@ -22,6 +22,10 @@ public abstract class AbstractZookeeperClient {
         this.maxRetryTimes = Objects.requireNonNullElse(maxRetryTimes, 3);
     }
 
+    public String getZkAddress() {
+        return zkAddress;
+    }
+
     public int getBaseSleepTimes() {
         return baseSleepTimes;
     }
@@ -38,27 +42,23 @@ public abstract class AbstractZookeeperClient {
         this.maxRetryTimes = maxRetryTimes;
     }
 
-    public abstract void updateNodeData(String address, String data);
-
     public abstract Object getClient();
-
-    public abstract String getNodeData(String path);
-
-    public abstract List<String> getChildrenData(String path);
 
     public abstract void createPersistentData(String address, String data);
 
     public abstract void createPersistentWithSeqData(String address, String data);
 
-    public abstract void createTemporarySeqData(String address, String data);
+    public abstract String getNodeData(String path);
+
+    public abstract void updateNodeData(String address, String data);
+
+    public abstract List<String> getChildrenData(String path);
 
     public abstract void createTemporaryData(String address, String data);
 
-    public abstract void setTemporaryData(String address, String data);
+    public abstract void createTemporarySeqData(String address, String data);
 
-    public abstract void destroy();
-
-    public abstract List<String> listNode(String address);
+    public abstract void updateTemporaryData(String address, String data);
 
     public abstract boolean deleteNode(String address);
 
@@ -67,4 +67,6 @@ public abstract class AbstractZookeeperClient {
     public abstract void watchNodeData(String path, Watcher watcher);
 
     public abstract void watchChildNodeData(String path, Watcher watcher);
+
+    public abstract void destroy();
 }

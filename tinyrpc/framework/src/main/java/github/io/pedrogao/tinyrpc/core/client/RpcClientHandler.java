@@ -12,9 +12,9 @@ import org.slf4j.LoggerFactory;
 
 import static github.io.pedrogao.tinyrpc.core.common.cache.CommonClientCache.RESP_MAP;
 
-public class ClientHandler extends ChannelInboundHandlerAdapter {
+public class RpcClientHandler extends ChannelInboundHandlerAdapter {
 
-    private final Logger log = LoggerFactory.getLogger(ClientHandler.class);
+    private final Logger log = LoggerFactory.getLogger(RpcClientHandler.class);
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {

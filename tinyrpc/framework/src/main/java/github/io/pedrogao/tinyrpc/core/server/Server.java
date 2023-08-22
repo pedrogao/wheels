@@ -1,11 +1,10 @@
 package github.io.pedrogao.tinyrpc.core.server;
 
-import com.google.common.collect.Maps;
 import github.io.pedrogao.tinyrpc.core.common.RpcDecoder;
 import github.io.pedrogao.tinyrpc.core.common.RpcEncoder;
 import github.io.pedrogao.tinyrpc.core.common.config.PropertiesBootstrap;
 import github.io.pedrogao.tinyrpc.core.common.config.ServerConfig;
-import github.io.pedrogao.tinyrpc.core.common.utils.CommonUtils;
+import github.io.pedrogao.tinyrpc.core.common.utils.CommonUtil;
 import github.io.pedrogao.tinyrpc.core.registry.RegistryService;
 import github.io.pedrogao.tinyrpc.core.registry.URL;
 import github.io.pedrogao.tinyrpc.core.registry.zookeeper.ZookeeperRegister;
@@ -17,7 +16,6 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -34,7 +32,7 @@ public class Server {
 
     private void startApplication() throws InterruptedException {
         registryService = new ZookeeperRegister(serverConfig.getRegisterAddr());
-        registerServices();
+        registerServicesInRegister();
         listen();
     }
 
@@ -57,20 +55,32 @@ public class Server {
 
                 channel.pipeline().addLast(new RpcEncoder());
                 channel.pipeline().addLast(new RpcDecoder());
-                channel.pipeline().addLast(new ServerHandler());
+                channel.pipeline().addLast(new RpcServerHandler());
             }
         });
         bootstrap.bind(serverConfig.getServerPort()).sync();
         log.info("Server started!");
     }
 
-    private void registerServices() {
+    private void registerServicesInRegister() {
         log.info("Register services start");
         registryScheduler.schedule(() -> {
             for (URL url : PROVIDER_URL_SET) {
                 registryService.register(url); // register service url to registry center
             }
         }, serverConfig.getRegistryInterval(), TimeUnit.MILLISECONDS);
+    }
+
+    public void loadServerConfig() {
+        setServerConfig(PropertiesBootstrap.loadServerConfigFromLocal());
+    }
+
+    private void setServerConfig(ServerConfig serverConfig) {
+        this.serverConfig = serverConfig;
+    }
+
+    public ServerConfig getServerConfig() {
+        return serverConfig;
     }
 
     public void registerService(Object serviceBean) {
@@ -85,24 +95,8 @@ public class Server {
         Class<?> interfaceClass = classes[0]; // first implement interface
         PROVIDER_CLASS_MAP.put(interfaceClass.getName(), serviceBean);
 
-        URL url = new URL(
-                serverConfig.getApplicationName(),
-                interfaceClass.getName(),
-                Maps.newHashMap(Map.of("host", CommonUtils.getIpAddress(), "port", String.valueOf(serverConfig.getServerPort())))
-        );
+        URL url = new URL(serverConfig.getApplicationName(), interfaceClass.getName(), CommonUtil.getIpAddress(), serverConfig.getServerPort());
         PROVIDER_URL_SET.add(url);
-    }
-
-    public void loadServerConfig() {
-        setServerConfig(PropertiesBootstrap.loadServerConfigFromLocal());
-    }
-
-    private void setServerConfig(ServerConfig serverConfig) {
-        this.serverConfig = serverConfig;
-    }
-
-    public ServerConfig getServerConfig() {
-        return serverConfig;
     }
 
     public static void main(String[] args) throws InterruptedException {

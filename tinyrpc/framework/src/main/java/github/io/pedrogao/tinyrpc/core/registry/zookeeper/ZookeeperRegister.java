@@ -1,13 +1,12 @@
 package github.io.pedrogao.tinyrpc.core.registry.zookeeper;
 
-import github.io.pedrogao.tinyrpc.core.common.event.Event;
-import github.io.pedrogao.tinyrpc.core.common.event.ListenerLoader;
-import github.io.pedrogao.tinyrpc.core.common.event.UpdateEvent;
-import github.io.pedrogao.tinyrpc.core.common.event.data.URLChangeWrapper;
+import com.google.common.annotations.VisibleForTesting;
 import github.io.pedrogao.tinyrpc.core.registry.URL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class ZookeeperRegister extends AbstractRegister {
@@ -16,68 +15,122 @@ public class ZookeeperRegister extends AbstractRegister {
 
     private final AbstractZookeeperClient zkClient;
 
-    private final static String ROOT = "/tinyrpc";
+    public final static String ROOT = "/tinyrpc";
 
     public ZookeeperRegister(String address) {
         this.zkClient = new CuratorZookeeperClient(address);
     }
 
     private String getProviderPath(URL url) {
-        return ROOT + "/" + url.getServiceName() + "/provider/" +
-                url.getParameters().get("host") + ":" + url.getParameters().get("port");
+        if (url.getPort().isEmpty())
+            throw new IllegalArgumentException("url port is empty");
+
+        // /tinyrpc/{serviceName}/provider/${host}:${port}
+        return ROOT + "/" +
+                url.getServiceName() +
+                "/provider/" +
+                url.getHost() +
+                ":" +
+                url.getPort().get();
     }
 
     private String getConsumerPath(URL url) {
-        return ROOT + "/" + url.getServiceName() + "/consumer/" +
-                url.getApplicationName() + ":" + url.getParameters().get("host") + ":";
+
+        // /tinyrpc/{serviceName}/consumer/${host}
+        return ROOT + "/" +
+                url.getServiceName() +
+                "/consumer/" +
+                url.getHost();
     }
 
     @Override
-    public List<String> getProviderIpList(String serviceName) {
-        return this.zkClient.getChildrenData(ROOT + "/" + serviceName + "/provider");
+    public List<URL> getProviderList(String serviceName) {
+        if (serviceName == null || serviceName.isEmpty())
+            return Collections.emptyList();
+
+        List<String> providerPathList = zkClient.getChildrenData(ROOT + "/" + serviceName + "/provider");
+        if (providerPathList == null || providerPathList.isEmpty())
+            return Collections.emptyList();
+
+        List<URL> providerList = new ArrayList<>();
+
+        for (String providerPath : providerPathList) {
+            String providerData = zkClient.getNodeData(ROOT + "/" + serviceName + "/provider/" + providerPath);
+            if (providerData == null || providerData.isEmpty())
+                continue;
+
+            URL url = URL.parseProviderUrlValue(providerData);
+            if (url == null)
+                continue;
+
+            providerList.add(url);
+        }
+        return providerList;
     }
 
     @Override
     public void register(URL url) {
-        if (!this.zkClient.existNode(ROOT)) {
+        if (!zkClient.existNode(ROOT)) {
             zkClient.createPersistentData(ROOT, "");
         }
-        String urlStr = URL.buildProviderUrlStr(url);
-        if (!zkClient.existNode(getProviderPath(url))) {
-            zkClient.createTemporaryData(getProviderPath(url), urlStr);
+
+        String value = URL.buildProviderUrlValue(url);
+        String providerPath = getProviderPath(url);
+
+        if (!zkClient.existNode(providerPath)) {
+            zkClient.createTemporaryData(providerPath, value);
         } else {
-            zkClient.deleteNode(getProviderPath(url));
-            zkClient.createTemporaryData(getProviderPath(url), urlStr);
+            zkClient.deleteNode(providerPath);
+            zkClient.createTemporaryData(providerPath, value);
         }
         super.register(url);
     }
 
     @Override
     public void unRegister(URL url) {
-        zkClient.deleteNode(getProviderPath(url));
+        String providerPath = getProviderPath(url);
+        zkClient.deleteNode(providerPath);
+
         super.unRegister(url);
     }
 
     @Override
     public void subscribe(URL url) {
-        if (!this.zkClient.existNode(ROOT)) {
+        if (!zkClient.existNode(ROOT)) {
             zkClient.createPersistentData(ROOT, "");
         }
-        String urlStr = URL.buildConsumerUrlStr(url);
-        if (!zkClient.existNode(getConsumerPath(url))) {
-            zkClient.createTemporarySeqData(getConsumerPath(url), urlStr);
+
+        String value = URL.buildConsumerUrlValue(url);
+        String consumerPath = getConsumerPath(url);
+
+        if (!zkClient.existNode(consumerPath)) {
+            zkClient.createTemporaryData(consumerPath, value);
         } else {
-            zkClient.deleteNode(getConsumerPath(url));
-            zkClient.createTemporarySeqData(getConsumerPath(url), urlStr);
+            zkClient.deleteNode(consumerPath);
+            zkClient.createTemporaryData(consumerPath, value);
         }
         super.subscribe(url);
     }
 
     @Override
+    public void doBeforeSubscribe(URL url) {
+        // TODO
+    }
+
+    @Override
     public void doAfterSubscribe(URL url) {
-        // 监听是否有新的服务注册
-        String newServerNodePath = ROOT + "/" + url.getServiceName() + "/provider";
-        watchChildNodeData(newServerNodePath);
+        // TODO
+
+        // String newServerNodePath = ROOT + "/" + url.getServiceName() + "/provider";
+        // watchChildNodeData(newServerNodePath);
+    }
+
+    @Override
+    public void unSubscribe(URL url) {
+        String consumerPath = getConsumerPath(url);
+
+        this.zkClient.deleteNode(consumerPath);
+        super.unSubscribe(url);
     }
 
     public void watchChildNodeData(String newServerNodePath) {
@@ -85,27 +138,18 @@ public class ZookeeperRegister extends AbstractRegister {
             log.info("watch child node data change, path:{}", watchedEvent.getPath());
 
             String path = watchedEvent.getPath();
-            List<String> childrenDataList = zkClient.getChildrenData(path);
-            URLChangeWrapper urlChangeWrapper = new URLChangeWrapper();
-            urlChangeWrapper.setProviderUrl(childrenDataList);
-            urlChangeWrapper.setServiceName(path.split("/")[2]);
-
-            // 自定义的一套事件监听组件
-            Event iEvent = new UpdateEvent(urlChangeWrapper);
-            ListenerLoader.sendEvent(iEvent);
-
             // 收到回调之后在注册一次监听，这样能保证一直都收到消息
             watchChildNodeData(path);
         });
     }
 
     @Override
-    public void doBeforeSubscribe(URL url) {
+    public void close() {
+        zkClient.destroy();
     }
 
-    @Override
-    public void unSubscribe(URL url) {
-        this.zkClient.deleteNode(getConsumerPath(url));
-        super.unSubscribe(url);
+    @VisibleForTesting
+    protected AbstractZookeeperClient getZkClient() {
+        return zkClient;
     }
 }

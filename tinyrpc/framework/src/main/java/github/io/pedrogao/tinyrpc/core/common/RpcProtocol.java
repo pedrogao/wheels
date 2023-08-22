@@ -4,7 +4,7 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.Arrays;
 
-import static github.io.pedrogao.tinyrpc.core.common.constants.RpcConstants.MAGIC_NUMBER;
+import static github.io.pedrogao.tinyrpc.core.common.constants.RpcConstant.MAGIC_NUMBER;
 
 public class RpcProtocol implements Serializable {
     @Serial

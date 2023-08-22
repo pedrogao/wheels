@@ -29,9 +29,11 @@ public abstract class AbstractRegister implements RegistryService {
         SUBSCRIBE_SERVICE_LIST.remove(url.getServiceName());
     }
 
-    public abstract void doAfterSubscribe(URL url);
-
     public abstract void doBeforeSubscribe(URL url);
 
-    public abstract List<String> getProviderIpList(String serviceName);
+    public abstract void doAfterSubscribe(URL url);
+
+    public abstract List<URL> getProviderList(String serviceName);
+
+    public abstract void close();
 }

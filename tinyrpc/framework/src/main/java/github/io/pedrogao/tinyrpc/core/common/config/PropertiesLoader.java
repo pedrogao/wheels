@@ -1,7 +1,7 @@
 package github.io.pedrogao.tinyrpc.core.common.config;
 
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
 
 public class PropertiesLoader {
@@ -15,8 +15,9 @@ public class PropertiesLoader {
             return;
 
         properties = new Properties();
-        FileInputStream fileInputStream = new FileInputStream(path);
-        properties.load(fileInputStream);
+
+        InputStream stream = PropertiesLoader.class.getClassLoader().getResourceAsStream(path);
+        properties.load(stream);
     }
 
     public static void loadConfiguration() throws IOException {

@@ -13,8 +13,8 @@ import java.lang.reflect.Method;
 
 import static github.io.pedrogao.tinyrpc.core.common.cache.CommonServerCache.PROVIDER_CLASS_MAP;
 
-class ServerHandler extends ChannelInboundHandlerAdapter {
-    final Logger log = LoggerFactory.getLogger(ServerHandler.class);
+class RpcServerHandler extends ChannelInboundHandlerAdapter {
+    final Logger log = LoggerFactory.getLogger(RpcServerHandler.class);
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {

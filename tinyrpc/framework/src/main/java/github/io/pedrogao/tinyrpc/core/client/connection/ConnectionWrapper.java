@@ -1,18 +1,18 @@
-package github.io.pedrogao.tinyrpc.core.common;
+package github.io.pedrogao.tinyrpc.core.client.connection;
 
 import io.netty.channel.ChannelFuture;
 
-public class ChannelFutureWrapper {
+public class ConnectionWrapper {
     private ChannelFuture channelFuture;
 
     private String host;
 
     private int port;
 
-    public ChannelFutureWrapper() {
+    public ConnectionWrapper() {
     }
 
-    public ChannelFutureWrapper(ChannelFuture channelFuture, String host, int port) {
+    public ConnectionWrapper(ChannelFuture channelFuture, String host, int port) {
         this.channelFuture = channelFuture;
         this.host = host;
         this.port = port;

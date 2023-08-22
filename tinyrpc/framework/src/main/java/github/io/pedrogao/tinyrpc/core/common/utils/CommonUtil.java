@@ -4,7 +4,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.List;
 
-public class CommonUtils {
+public class CommonUtil {
     public static boolean isEmptyList(List<?> list) {
         return list == null || list.isEmpty();
     }

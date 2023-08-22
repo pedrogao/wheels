@@ -21,29 +21,57 @@ public class CuratorZookeeperClient extends AbstractZookeeperClient {
 
     public CuratorZookeeperClient(String zkAddress) {
         super(zkAddress);
+
+        initClient(zkAddress);
     }
 
     public CuratorZookeeperClient(String zkAddress, Integer baseSleepTimes, Integer maxRetryTimes) {
         super(zkAddress, baseSleepTimes, maxRetryTimes);
-        RetryPolicy retryPolicy = new ExponentialBackoffRetry(super.getBaseSleepTimes(), super.getMaxRetryTimes());
-        if (client == null) {
-            client = CuratorFrameworkFactory.newClient(zkAddress, retryPolicy);
-            client.start();
-        }
+
+        initClient(zkAddress);
     }
 
-    @Override
-    public void updateNodeData(String address, String data) {
-        try {
-            client.setData().forPath(address, data.getBytes());
-        } catch (Exception e) {
-            log.error("update node data error", e);
-        }
+    private void initClient(String zkAddress) {
+        RetryPolicy retryPolicy = new ExponentialBackoffRetry(super.getBaseSleepTimes(), super.getMaxRetryTimes());
+        client = CuratorFrameworkFactory.newClient(zkAddress, retryPolicy);
+        client.start();
     }
 
     @Override
     public Object getClient() {
         return client;
+    }
+
+    @Override
+    public void createPersistentData(String path, String data) {
+        try {
+            client.create().creatingParentContainersIfNeeded().
+                    withMode(CreateMode.PERSISTENT).forPath(path, data.getBytes());
+        } catch (Exception e) {
+            log.error("create persistent node error", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void createPersistentWithSeqData(String path, String data) {
+        try {
+            client.create().creatingParentContainersIfNeeded().
+                    withMode(CreateMode.PERSISTENT_SEQUENTIAL).forPath(path, data.getBytes());
+        } catch (Exception e) {
+            log.error("create persistent node with seq error", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void updateNodeData(String path, String data) {
+        try {
+            client.setData().forPath(path, data.getBytes());
+        } catch (Exception e) {
+            log.error("update node data error", e);
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -56,8 +84,8 @@ public class CuratorZookeeperClient extends AbstractZookeeperClient {
             return null;
         } catch (Exception e) {
             log.error("get node data error", e);
+            throw new RuntimeException(e);
         }
-        return null;
     }
 
     @Override
@@ -66,51 +94,32 @@ public class CuratorZookeeperClient extends AbstractZookeeperClient {
             return client.getChildren().forPath(path);
         } catch (KeeperException.NoNodeException e) {
             log.error("node not exist", e);
-            return null;
+            return Collections.emptyList();
         } catch (Exception e) {
             log.error("get children node data error", e);
-        }
-        return null;
-    }
-
-    @Override
-    public void createPersistentData(String address, String data) {
-        try {
-            client.create().creatingParentContainersIfNeeded().
-                    withMode(CreateMode.PERSISTENT).forPath(address, data.getBytes());
-        } catch (Exception e) {
-            log.error("create persistent node error", e);
+            throw new RuntimeException(e);
         }
     }
 
     @Override
-    public void createPersistentWithSeqData(String address, String data) {
+    public void createTemporarySeqData(String path, String data) {
         try {
             client.create().creatingParentContainersIfNeeded().
-                    withMode(CreateMode.PERSISTENT_SEQUENTIAL).forPath(address, data.getBytes());
-        } catch (Exception e) {
-            log.error("create persistent node with seq error", e);
-        }
-    }
-
-    @Override
-    public void createTemporarySeqData(String address, String data) {
-        try {
-            client.create().creatingParentContainersIfNeeded().
-                    withMode(CreateMode.EPHEMERAL_SEQUENTIAL).forPath(address, data.getBytes());
+                    withMode(CreateMode.EPHEMERAL_SEQUENTIAL).forPath(path, data.getBytes());
         } catch (Exception e) {
             log.error("create temporary node with seq error", e);
+            throw new RuntimeException(e);
         }
     }
 
     @Override
-    public void createTemporaryData(String address, String data) {
+    public void createTemporaryData(String path, String data) {
         try {
             client.create().creatingParentContainersIfNeeded().
-                    withMode(CreateMode.EPHEMERAL).forPath(address, data.getBytes());
+                    withMode(CreateMode.EPHEMERAL).forPath(path, data.getBytes());
         } catch (KeeperException.NoChildrenForEphemeralsException e) {
             try {
-                client.setData().forPath(address, data.getBytes());
+                client.setData().forPath(path, data.getBytes());
             } catch (Exception ex) {
                 throw new IllegalStateException(ex.getMessage(), ex);
             }
@@ -120,10 +129,11 @@ public class CuratorZookeeperClient extends AbstractZookeeperClient {
     }
 
     @Override
-    public void setTemporaryData(String address, String data) {
+    public void updateTemporaryData(String path, String data) {
         try {
-            client.setData().forPath(address, data.getBytes());
+            client.setData().forPath(path, data.getBytes());
         } catch (Exception ex) {
+            log.error("set temporary node data error", ex);
             throw new IllegalStateException(ex.getMessage(), ex);
         }
     }
@@ -134,36 +144,28 @@ public class CuratorZookeeperClient extends AbstractZookeeperClient {
     }
 
     @Override
-    public List<String> listNode(String address) {
+    public boolean deleteNode(String path) {
         try {
-            return client.getChildren().forPath(address);
-        } catch (Exception e) {
-            log.error("list node error", e);
-        }
-        return Collections.emptyList();
-    }
-
-    @Override
-    public boolean deleteNode(String address) {
-        try {
-            client.delete().forPath(address);
+            client.delete().forPath(path);
             return true;
+        } catch (KeeperException.NoNodeException e) {
+            log.error("node not exist", e);
+            return false;
         } catch (Exception e) {
             log.error("delete node error", e);
+            throw new RuntimeException(e);
         }
-        return false;
     }
 
     @Override
-    public boolean existNode(String address) {
+    public boolean existNode(String path) {
         try {
-            Stat stat = client.checkExists().forPath(address);
+            Stat stat = client.checkExists().forPath(path);
             return stat != null;
         } catch (Exception e) {
-            e.printStackTrace();
             log.error("check node exist error", e);
+            throw new RuntimeException(e);
         }
-        return false;
     }
 
     @Override
@@ -172,6 +174,7 @@ public class CuratorZookeeperClient extends AbstractZookeeperClient {
             client.getData().usingWatcher(watcher).forPath(path);
         } catch (Exception e) {
             log.error("watch node data error", e);
+            throw new RuntimeException(e);
         }
     }
 
@@ -181,6 +184,7 @@ public class CuratorZookeeperClient extends AbstractZookeeperClient {
             client.getChildren().usingWatcher(watcher).forPath(path);
         } catch (Exception e) {
             log.error("watch child node data error", e);
+            throw new RuntimeException(e);
         }
     }
 }

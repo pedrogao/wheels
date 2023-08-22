@@ -6,7 +6,7 @@ import io.netty.handler.codec.ByteToMessageDecoder;
 
 import java.util.List;
 
-import static github.io.pedrogao.tinyrpc.core.common.constants.RpcConstants.MAGIC_NUMBER;
+import static github.io.pedrogao.tinyrpc.core.common.constants.RpcConstant.MAGIC_NUMBER;
 
 public class RpcDecoder extends ByteToMessageDecoder {
 

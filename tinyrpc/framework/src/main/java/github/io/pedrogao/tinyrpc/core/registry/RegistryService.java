@@ -1,5 +1,8 @@
 package github.io.pedrogao.tinyrpc.core.registry;
 
+/**
+ * Registry Service interface
+ */
 public interface RegistryService {
     void register(URL url);
 
