@@ -2,7 +2,7 @@ package github.io.pedrogao.tinyrpc.core.client.connection;
 
 import github.io.pedrogao.tinyrpc.core.client.connection.router.RandomRouter;
 import github.io.pedrogao.tinyrpc.core.client.connection.router.Router;
-import github.io.pedrogao.tinyrpc.core.common.TinyProtocol;
+import github.io.pedrogao.tinyrpc.core.common.protocol.TinyProtocol;
 import github.io.pedrogao.tinyrpc.core.common.utils.CommonUtil;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;

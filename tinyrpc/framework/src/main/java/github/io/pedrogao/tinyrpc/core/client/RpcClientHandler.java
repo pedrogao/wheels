@@ -2,7 +2,7 @@ package github.io.pedrogao.tinyrpc.core.client;
 
 import com.alibaba.fastjson.JSON;
 import github.io.pedrogao.tinyrpc.core.common.Invocation;
-import github.io.pedrogao.tinyrpc.core.common.TinyProtocol;
+import github.io.pedrogao.tinyrpc.core.common.protocol.TinyProtocol;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -21,6 +21,7 @@ public class RpcClientHandler extends ChannelInboundHandlerAdapter {
         TinyProtocol tinyProtocol = (TinyProtocol) msg;
         byte[] content = tinyProtocol.getContent();
 
+        // TODO serialization type
         Invocation invocation = JSON.parseObject(content, Invocation.class);
         if (!RESP_MAP.containsKey(invocation.getUuid())) {
             log.error("ClientHandler.channelRead: no such uuid in RESP_MAP");

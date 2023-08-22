@@ -1,7 +1,7 @@
 package github.io.pedrogao.tinyrpc.core.server;
 
-import github.io.pedrogao.tinyrpc.core.common.TinyDecoder;
-import github.io.pedrogao.tinyrpc.core.common.TinyEncoder;
+import github.io.pedrogao.tinyrpc.core.common.protocol.TinyDecoder;
+import github.io.pedrogao.tinyrpc.core.common.protocol.TinyEncoder;
 import github.io.pedrogao.tinyrpc.core.common.config.PropertiesBootstrap;
 import github.io.pedrogao.tinyrpc.core.common.config.ServerConfig;
 import github.io.pedrogao.tinyrpc.core.common.utils.CommonUtil;

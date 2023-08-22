@@ -1,4 +1,4 @@
-package github.io.pedrogao.tinyrpc.core.common;
+package github.io.pedrogao.tinyrpc.core.common.protocol;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -9,6 +9,8 @@ public class TinyEncoder extends MessageToByteEncoder<TinyProtocol> {
     protected void encode(ChannelHandlerContext channelHandlerContext,
                           TinyProtocol tinyProtocol, ByteBuf out) throws Exception {
         out.writeShort(tinyProtocol.getMagicNumber());
+        out.writeShort(tinyProtocol.getVersion());
+        out.writeShort(tinyProtocol.getSerialization());
         out.writeInt(tinyProtocol.getContentLength());
         out.writeBytes(tinyProtocol.getContent());
     }

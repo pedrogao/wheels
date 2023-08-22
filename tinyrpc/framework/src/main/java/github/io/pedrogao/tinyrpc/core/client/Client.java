@@ -2,10 +2,10 @@ package github.io.pedrogao.tinyrpc.core.client;
 
 import com.alibaba.fastjson.JSON;
 import github.io.pedrogao.tinyrpc.core.client.connection.ConnectionManager;
-import github.io.pedrogao.tinyrpc.core.common.TinyDecoder;
-import github.io.pedrogao.tinyrpc.core.common.TinyEncoder;
+import github.io.pedrogao.tinyrpc.core.common.protocol.TinyDecoder;
+import github.io.pedrogao.tinyrpc.core.common.protocol.TinyEncoder;
 import github.io.pedrogao.tinyrpc.core.common.Invocation;
-import github.io.pedrogao.tinyrpc.core.common.TinyProtocol;
+import github.io.pedrogao.tinyrpc.core.common.protocol.TinyProtocol;
 import github.io.pedrogao.tinyrpc.core.common.config.ClientConfig;
 import github.io.pedrogao.tinyrpc.core.common.config.PropertiesBootstrap;
 import github.io.pedrogao.tinyrpc.core.common.utils.CommonUtil;

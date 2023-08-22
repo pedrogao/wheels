@@ -1,4 +1,4 @@
-package github.io.pedrogao.tinyrpc.core.common;
+package github.io.pedrogao.tinyrpc.core.common.protocol;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -10,7 +10,7 @@ import static github.io.pedrogao.tinyrpc.core.common.constants.ProtocolConstant.
 
 public class TinyDecoder extends ByteToMessageDecoder {
 
-    public final int BASE_LENGTH = 2 + 4;
+    public final int BASE_LENGTH = 2 + 2 + 2 + 4;
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> out) throws Exception {
@@ -25,6 +25,8 @@ public class TinyDecoder extends ByteToMessageDecoder {
             return;
         }
 
+        short version = byteBuf.readShort(); // protocol version
+        short serialization = byteBuf.readShort(); // serialization type
         int length = byteBuf.readInt();
         if (byteBuf.readableBytes() < length) {
             byteBuf.resetReaderIndex(); // content length invalid, reset reader index
@@ -33,7 +35,7 @@ public class TinyDecoder extends ByteToMessageDecoder {
 
         byte[] content = new byte[length];
         byteBuf.readBytes(content);
-        TinyProtocol tinyProtocol = new TinyProtocol(content);
+        TinyProtocol tinyProtocol = new TinyProtocol(version, serialization, content);
         out.add(tinyProtocol);
     }
 }
