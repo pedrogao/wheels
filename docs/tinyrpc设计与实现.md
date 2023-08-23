@@ -10,14 +10,15 @@ RPC（Remote Procedure Call），全称为远程调用。一个完整的RPC架�
 - Client：客户端；
 - Server Stub：服务端接收到Client发送的数据之后进行消息解包，调用本地方法；
 - Client Stub：将客户端请求的参数、服务名称、服务地址进行打包，统一发送给server方；
-  ![img.png](img.png)
+
+![img.png](rpc1.png)
 
 调用流程如下图所示：
-![img_1.png](img_1.png)
+![img_1.png](rpc2.png)
 
 ## 详细设计
 
-![img_2.png](img_2.png)
+![img_2.png](rpc3.png)
 
 tinyrpc 框架的整体结构基本分层为：
 
@@ -83,7 +84,7 @@ Java中实现接口代理的方式有两种：
 - 服务灰度策略等；
 
 每个服务提供者都有一个唯一且确定的连接，路由层通过不同的策略来选择合适的连接，并发起请求：
-![img_3.png](img_3.png)
+![img_3.png](rpc4.png)
 
 基于此，我们抽象一个 Router 接口，用于客户端发起请求时选择提供者连接：
 
@@ -125,7 +126,7 @@ public class HashRouter implements Router {
 - 可读，协议可读性好，方便调试、观测；
 
 良好的协议需要充分的调研和长时间的打磨，但我们显然没有这种条件，这里我们提出了一种名为 TinyProtocol 的简单协议：
-![img_4.png](img_4.png)
+![img_4.png](rpc5.png)
 
 TinyProtocol 小巧可用，仅有5个字段，性能高：
 
@@ -229,7 +230,7 @@ fastjson（实在是国内用的太普遍了）：
 ### 注册层
 
 服务消费者通过注册中心感知服务提供者的地址信息，从而发起RPC请求；如下：
-![img_5.png](img_5.png)
+![img_5.png](rpc6.png)
 
 - 服务提供者向注册中心注册服务；
 - 服务消费者从注册中心订阅服务；
@@ -237,7 +238,7 @@ fastjson（实在是国内用的太普遍了）：
 - 当注册数据发生变更时，向提供者、消费者发送变更通知；
 
 以Zookeeper为例，服务注册遵循目录规范，一个简单的服务注册结构图如下：
-![img_6.png](img_6.png)
+![img_6.png](rpc7.png)
 
 服务提供者：向ZK注册（register）地址信息，启动RPC服务，等待请求；
 服务消费者：向ZK订阅（subscribe）地址信息，发起RPC请求，等待响应；
@@ -251,7 +252,7 @@ fastjson（实在是国内用的太普遍了）：
 ### 链路层
 
 扩展性是一个RPC框架另一个重要的特性，RPC框架在设计时就应该考虑到将框架部分模块功能暴露出去；责任链模式非常适合帮助框架提高扩展性。
-![img_7.png](img_7.png)
+![img_7.png](rpc8.png)
 
 代理层封装方法、参数后，将请求交给路由层之前必须经过整个链路层（责任链）后才能到达路由层，而在整个责任链路中，都支持插入用户自定义的中间件对请求处理，比如：
 
@@ -313,7 +314,7 @@ private final Retryer<Object> retryer=RetryerBuilder.newBuilder()
         .build();
 
 
-        Callable<Object> callable=()->{
+        Callable<Object> callable = () -> {
             SEND_QUEUE.add(invocation);
             Object result=RESP_MAP.get(invocation.getUuid());
             if(result instanceof Invocation){
@@ -322,9 +323,9 @@ private final Retryer<Object> retryer=RetryerBuilder.newBuilder()
             return null;
         };
 
-        try{
+        try {
             return retryer.call(callable);
-        }catch(RetryException|ExecutionException e){
+        } catch (RetryException|ExecutionException e) {
             log.error("JDKClientInvocationHandler.invoke error ",e);
             throw new RuntimeException(e);
         }
@@ -334,7 +335,7 @@ private final Retryer<Object> retryer=RetryerBuilder.newBuilder()
 
 ## 下一步计划
 
-tinyrpc 是一个可用的RCP玩具，旨在学习和事件，距离生产可用还有很长的距离。
+tinyrpc 是一个可用的RCP玩具，旨在学习和实践，距离生产可用还有很长的距离。
 
 tinyrpc 可优化的 3 个方向：
 
