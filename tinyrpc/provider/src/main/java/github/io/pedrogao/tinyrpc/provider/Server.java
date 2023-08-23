@@ -1,4 +1,4 @@
-package github.io.pedrogao.tinyrpc.core.server;
+package github.io.pedrogao.tinyrpc.provider;
 
 import github.io.pedrogao.tinyrpc.core.common.handler.InvocationHandler;
 import github.io.pedrogao.tinyrpc.core.common.protocol.TinyDecoder;

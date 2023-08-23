@@ -1,5 +1,6 @@
-package github.io.pedrogao.tinyrpc.core.client;
+package github.io.pedrogao.tinyrpc.consumer;
 
+import github.io.pedrogao.tinyrpc.core.client.LogFilter;
 import github.io.pedrogao.tinyrpc.core.client.connection.ConnectionManager;
 import github.io.pedrogao.tinyrpc.core.common.filter.ClientFilter;
 import github.io.pedrogao.tinyrpc.core.common.handler.InvocationSender;
