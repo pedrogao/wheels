@@ -1,91 +1,99 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-  <parent>
-    <groupId>github.io.pedrogao</groupId>
-    <artifactId>wheels</artifactId>
+    <parent>
+        <groupId>github.io.pedrogao</groupId>
+        <artifactId>wheels</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>tinyrpc</artifactId>
     <version>1.0-SNAPSHOT</version>
-  </parent>
+    <packaging>pom</packaging>
 
-  <artifactId>tinyrpc</artifactId>
-  <version>1.0-SNAPSHOT</version>
-  <packaging>pom</packaging>
+    <name>tinyrpc</name>
 
-  <name>tinyrpc</name>
+    <modules>
+        <module>example</module>
+        <module>framework</module>
+        <module>interface</module>
+        <module>consumer</module>
+        <module>provider</module>
+    </modules>
 
-  <modules>
-    <module>example</module>
-    <module>framework</module>
-    <module>interface</module>
-    <module>consumer</module>
-    <module>provider</module>
-  </modules>
+    <properties>
+        <maven.compiler.source>19</maven.compiler.source>
+        <maven.compiler.target>19</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-  <properties>
-    <maven.compiler.source>19</maven.compiler.source>
-    <maven.compiler.target>19</maven.compiler.target>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <netty.version>4.1.86.Final</netty.version>
+        <fastjson.version>2.0.32</fastjson.version>
+        <jboss-marshalling-river.version>1.4.11.Final</jboss-marshalling-river.version>
+        <jboss-marshalling-serial.version>1.4.11.Final</jboss-marshalling-serial.version>
+        <javassist.version>3.29.2-GA</javassist.version>
+        <zookeeper.version>3.9.0</zookeeper.version>
+        <zkClient.version>0.11</zkClient.version>
+        <curator.version>5.5.0</curator.version>
+        <guava-retrying.version>2.0.0</guava-retrying.version>
+    </properties>
 
-    <netty.version>4.1.86.Final</netty.version>
-    <fastjson.version>2.0.32</fastjson.version>
-    <jboss-marshalling-river.version>1.4.11.Final</jboss-marshalling-river.version>
-    <jboss-marshalling-serial.version>1.4.11.Final</jboss-marshalling-serial.version>
-    <javassist.version>3.29.2-GA</javassist.version>
-    <zookeeper.version>3.9.0</zookeeper.version>
-    <zkClient.version>0.11</zkClient.version>
-    <curator.version>5.5.0</curator.version>
-  </properties>
+    <dependencies>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <version>${netty.version}</version>
+        </dependency>
 
-  <dependencies>
-    <dependency>
-      <groupId>io.netty</groupId>
-      <artifactId>netty-all</artifactId>
-      <version>${netty.version}</version>
-    </dependency>
+        <dependency>
+            <groupId>org.javassist</groupId>
+            <artifactId>javassist</artifactId>
+            <version>${javassist.version}</version>
+        </dependency>
 
-    <dependency>
-      <groupId>org.javassist</groupId>
-      <artifactId>javassist</artifactId>
-      <version>${javassist.version}</version>
-    </dependency>
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>${fastjson.version}</version>
+        </dependency>
 
-    <dependency>
-      <groupId>com.alibaba</groupId>
-      <artifactId>fastjson</artifactId>
-      <version>${fastjson.version}</version>
-    </dependency>
+        <!--序列化 接收方工具-->
+        <dependency>
+            <groupId>org.jboss.marshalling</groupId>
+            <artifactId>jboss-marshalling-river</artifactId>
+            <version>${jboss-marshalling-river.version}</version>
+        </dependency>
 
-    <!--序列化 接收方工具-->
-    <dependency>
-      <groupId>org.jboss.marshalling</groupId>
-      <artifactId>jboss-marshalling-river</artifactId>
-      <version>${jboss-marshalling-river.version}</version>
-    </dependency>
+        <!--序列化 处理工具-->
+        <dependency>
+            <groupId>org.jboss.marshalling</groupId>
+            <artifactId>jboss-marshalling-serial</artifactId>
+            <version>${jboss-marshalling-serial.version}</version>
+        </dependency>
 
-    <!--序列化 处理工具-->
-    <dependency>
-      <groupId>org.jboss.marshalling</groupId>
-      <artifactId>jboss-marshalling-serial</artifactId>
-      <version>${jboss-marshalling-serial.version}</version>
-    </dependency>
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-framework</artifactId>
+            <version>${curator.version}</version>
+        </dependency>
 
-    <dependency>
-      <groupId>org.apache.curator</groupId>
-      <artifactId>curator-framework</artifactId>
-      <version>${curator.version}</version>
-    </dependency>
+        <dependency>
+            <groupId>org.apache.zookeeper</groupId>
+            <artifactId>zookeeper</artifactId>
+            <version>${zookeeper.version}</version>
+        </dependency>
 
-    <dependency>
-      <groupId>org.apache.zookeeper</groupId>
-      <artifactId>zookeeper</artifactId>
-      <version>${zookeeper.version}</version>
-    </dependency>
+        <dependency>
+            <groupId>com.101tec</groupId>
+            <artifactId>zkclient</artifactId>
+            <version>${zkClient.version}</version>
+        </dependency>
 
-    <dependency>
-      <groupId>com.101tec</groupId>
-      <artifactId>zkclient</artifactId>
-      <version>${zkClient.version}</version>
-    </dependency>
-  </dependencies>
+        <dependency>
+            <groupId>com.github.rholder</groupId>
+            <artifactId>guava-retrying</artifactId>
+            <version>2.0.0</version>
+        </dependency>
+
+    </dependencies>
 </project>
