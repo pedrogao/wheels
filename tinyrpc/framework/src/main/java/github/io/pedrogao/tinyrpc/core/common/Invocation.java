@@ -9,6 +9,24 @@ public class Invocation {
     private String uuid;
     private Object response;
 
+    public Invocation() {
+    }
+
+    public Invocation(String targetMethod, String targetServiceName, Object[] args, String uuid) {
+        this.targetMethod = targetMethod;
+        this.targetServiceName = targetServiceName;
+        this.args = args;
+        this.uuid = uuid;
+    }
+
+    public Invocation(String targetMethod, String targetServiceName, Object[] args, String uuid, Object response) {
+        this.targetMethod = targetMethod;
+        this.targetServiceName = targetServiceName;
+        this.args = args;
+        this.uuid = uuid;
+        this.response = response;
+    }
+
     public String getTargetMethod() {
         return targetMethod;
     }

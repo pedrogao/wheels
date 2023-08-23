@@ -1,7 +1,8 @@
 package github.io.pedrogao.tinyrpc.core.client;
 
-import com.alibaba.fastjson.JSON;
 import github.io.pedrogao.tinyrpc.core.client.connection.ConnectionManager;
+import github.io.pedrogao.tinyrpc.core.common.filter.ClientFilter;
+import github.io.pedrogao.tinyrpc.core.common.handler.InvocationSender;
 import github.io.pedrogao.tinyrpc.core.common.protocol.SerializationType;
 import github.io.pedrogao.tinyrpc.core.common.protocol.TinyDecoder;
 import github.io.pedrogao.tinyrpc.core.common.protocol.TinyEncoder;
@@ -27,8 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-import static github.io.pedrogao.tinyrpc.core.common.cache.CommonClientCache.SEND_QUEUE;
-import static github.io.pedrogao.tinyrpc.core.common.cache.CommonClientCache.SUBSCRIBE_SERVICE_LIST;
+import static github.io.pedrogao.tinyrpc.core.common.cache.CommonClientCache.*;
 
 public class Client {
     private final Logger log = LoggerFactory.getLogger(Client.class);
@@ -57,7 +57,7 @@ public class Client {
             protected void initChannel(SocketChannel ch) throws Exception {
                 ch.pipeline().addLast(new TinyEncoder());
                 ch.pipeline().addLast(new TinyDecoder());
-                ch.pipeline().addLast(new RpcClientHandler());
+                ch.pipeline().addLast(new InvocationSender());
             }
         });
     }
@@ -88,6 +88,10 @@ public class Client {
         }
     }
 
+    public void addFilter(ClientFilter filter) {
+        FILTER_LIST.add(filter);
+    }
+
     private void startBackgroundSendTask() {
         Thread asyncSendJob = new Thread(() -> {
             while (true) {
@@ -113,6 +117,7 @@ public class Client {
 
         client.subscribeService(DataService.class);
         client.startApplication();
+        client.addFilter(new LogFilter());
 
         final DataService dataService = ProxyFactory.get(DataService.class); // proxy service bean
         for (int i = 0; i < 100; i++) {

@@ -1,6 +1,5 @@
-package github.io.pedrogao.tinyrpc.core.server;
+package github.io.pedrogao.tinyrpc.core.common.handler;
 
-import com.alibaba.fastjson.JSON;
 import github.io.pedrogao.tinyrpc.core.common.Invocation;
 import github.io.pedrogao.tinyrpc.core.common.protocol.TinyProtocol;
 import github.io.pedrogao.tinyrpc.core.common.serialization.Serializer;
@@ -14,16 +13,16 @@ import java.lang.reflect.Method;
 
 import static github.io.pedrogao.tinyrpc.core.common.cache.CommonServerCache.PROVIDER_CLASS_MAP;
 
-class RpcServerHandler extends ChannelInboundHandlerAdapter {
-    final Logger log = LoggerFactory.getLogger(RpcServerHandler.class);
+public class InvocationHandler extends ChannelInboundHandlerAdapter {
+    final Logger log = LoggerFactory.getLogger(InvocationHandler.class);
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        log.info("ServerHandler.channelRead: " + msg);
+        log.info("InvocationHandler.channelRead: " + msg);
 
-        TinyProtocol tinyProtocol = (TinyProtocol) msg;
-        Serializer serializer = Serializer.getSerializer(tinyProtocol.getSerialization());
-        Invocation invocation = serializer.deserialize(tinyProtocol.getContent(), Invocation.class);
+        TinyProtocol protocol = (TinyProtocol) msg;
+        Serializer serializer = Serializer.getSerializer(protocol.getSerialization());
+        Invocation invocation = serializer.deserialize(protocol.getContent(), Invocation.class);
 
         Object targetObject = PROVIDER_CLASS_MAP.get(invocation.getTargetServiceName());
         Method[] methods = targetObject.getClass().getDeclaredMethods();
@@ -46,7 +45,7 @@ class RpcServerHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        log.error("ServerHandler.exceptionCaught: ", cause);
+        log.error("InvocationHandler.exceptionCaught: ", cause);
         Channel channel = ctx.channel();
         if (channel.isActive())
             channel.close();

@@ -1,4 +1,4 @@
-package github.io.pedrogao.tinyrpc.core.client;
+package github.io.pedrogao.tinyrpc.core.common.handler;
 
 import github.io.pedrogao.tinyrpc.core.common.Invocation;
 import github.io.pedrogao.tinyrpc.core.common.protocol.TinyProtocol;
@@ -12,19 +12,19 @@ import org.slf4j.LoggerFactory;
 
 import static github.io.pedrogao.tinyrpc.core.common.cache.CommonClientCache.RESP_MAP;
 
-public class RpcClientHandler extends ChannelInboundHandlerAdapter {
+public class InvocationSender extends ChannelInboundHandlerAdapter {
 
-    private final Logger log = LoggerFactory.getLogger(RpcClientHandler.class);
+    private final Logger log = LoggerFactory.getLogger(InvocationSender.class);
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        TinyProtocol tinyProtocol = (TinyProtocol) msg;
-        byte[] content = tinyProtocol.getContent();
+        TinyProtocol protocol = (TinyProtocol) msg;
+        byte[] content = protocol.getContent();
 
-        Serializer serializer = Serializer.getSerializer(tinyProtocol.getSerialization());
+        Serializer serializer = Serializer.getSerializer(protocol.getSerialization());
         Invocation invocation = serializer.deserialize(content, Invocation.class);
         if (!RESP_MAP.containsKey(invocation.getUuid())) {
-            log.error("ClientHandler.channelRead: no such uuid in RESP_MAP");
+            log.error("InvocationSender.channelRead: no such uuid in RESP_MAP");
             return;
         }
 
@@ -34,7 +34,7 @@ public class RpcClientHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        log.error("ClientHandler err", cause);
+        log.error("InvocationSender err", cause);
         Channel channel = ctx.channel();
         if (channel.isActive())
             channel.close();

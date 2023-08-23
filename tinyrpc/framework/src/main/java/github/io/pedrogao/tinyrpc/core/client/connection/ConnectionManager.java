@@ -5,16 +5,14 @@ import github.io.pedrogao.tinyrpc.core.client.connection.router.Router;
 import github.io.pedrogao.tinyrpc.core.common.protocol.TinyProtocol;
 import github.io.pedrogao.tinyrpc.core.common.utils.CommonUtil;
 import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.util.concurrent.GenericFutureListener;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 
 public class ConnectionManager {
     public static Map<String, List<ConnectionWrapper>> connectionMap = new ConcurrentHashMap<>();
@@ -70,20 +68,24 @@ public class ConnectionManager {
         }
     }
 
+    private Channel getChannel(String serviceName) {
+        return getChannelFuture(serviceName).channel();
+    }
+
     public ChannelFuture call(String serviceName, TinyProtocol tinyProtocol) {
-        return getChannelFuture(serviceName).channel().writeAndFlush(tinyProtocol).syncUninterruptibly();
+        return getChannel(serviceName).writeAndFlush(tinyProtocol).syncUninterruptibly();
     }
 
     public ChannelFuture callAsync(String serviceName, TinyProtocol tinyProtocol) {
-        return getChannelFuture(serviceName).channel().writeAndFlush(tinyProtocol);
+        return getChannel(serviceName).writeAndFlush(tinyProtocol);
     }
 
     public void callAsyncWithTimeout(String serviceName, TinyProtocol tinyProtocol, long timeoutSecond) throws
             ExecutionException, InterruptedException, TimeoutException {
-        getChannelFuture(serviceName).channel().writeAndFlush(tinyProtocol).get(timeoutSecond, TimeUnit.SECONDS);
+        getChannel(serviceName).writeAndFlush(tinyProtocol).get(timeoutSecond, TimeUnit.SECONDS);
     }
 
     public void callAsyncWithCallback(String serviceName, TinyProtocol tinyProtocol, GenericFutureListener callback) {
-        getChannelFuture(serviceName).channel().writeAndFlush(tinyProtocol).addListener(callback);
+        getChannel(serviceName).writeAndFlush(tinyProtocol).addListener(callback);
     }
 }

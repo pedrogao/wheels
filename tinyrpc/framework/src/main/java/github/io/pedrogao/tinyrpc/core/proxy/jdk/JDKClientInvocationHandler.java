@@ -1,6 +1,8 @@
 package github.io.pedrogao.tinyrpc.core.proxy.jdk;
 
 import github.io.pedrogao.tinyrpc.core.common.Invocation;
+import github.io.pedrogao.tinyrpc.core.common.cache.CommonClientCache;
+import github.io.pedrogao.tinyrpc.core.common.filter.ClientFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,20 +27,19 @@ public class JDKClientInvocationHandler implements InvocationHandler {
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        Invocation invocation = new Invocation();
-        invocation.setTargetServiceName(clazz.getName());
-        invocation.setTargetMethod(method.getName());
-        invocation.setArgs(args);
-        invocation.setUuid(UUID.randomUUID().toString());
+        Invocation invocation = new Invocation(method.getName(), clazz.getName(), args, UUID.randomUUID().toString());
 
-        RESP_MAP.put(invocation.getUuid(), OBJECT);
+        boolean ok = doFilter(invocation);
+        if (!ok) {
+            log.error("JDKClientInvocationHandler.invoke: filter failed");
+            throw new RuntimeException("invoke filter failed");
+        }
+
+        RESP_MAP.put(invocation.getUuid(), OBJECT); // placeholder
         SEND_QUEUE.add(invocation);
 
-        long beginTime = System.currentTimeMillis();
-
         // TODO refactor this, Proxy don't need to know the implementation of retry and queue
-        // wait for rpc response
-        // timeout: 3s
+        long beginTime = System.currentTimeMillis();
         while (System.currentTimeMillis() - beginTime < 3 * 1000) {
             Object result = RESP_MAP.get(invocation.getUuid());
             if (result instanceof Invocation) {
@@ -47,5 +48,16 @@ public class JDKClientInvocationHandler implements InvocationHandler {
         }
         log.error("JDKClientInvocationHandler.invoke: timeout");
         throw new TimeoutException("rpc call timeout");
+    }
+
+    private boolean doFilter(Invocation invocation) {
+        var filterChain = CommonClientCache.FILTER_LIST;
+
+        for (ClientFilter filter : filterChain) {
+            if (!filter.handle(invocation)) {
+                return false;
+            }
+        }
+        return true;
     }
 }

@@ -1,5 +1,6 @@
 package github.io.pedrogao.tinyrpc.core.server;
 
+import github.io.pedrogao.tinyrpc.core.common.handler.InvocationHandler;
 import github.io.pedrogao.tinyrpc.core.common.protocol.TinyDecoder;
 import github.io.pedrogao.tinyrpc.core.common.protocol.TinyEncoder;
 import github.io.pedrogao.tinyrpc.core.common.config.PropertiesBootstrap;
@@ -59,7 +60,7 @@ public class Server {
 
                 channel.pipeline().addLast(new TinyEncoder());
                 channel.pipeline().addLast(new TinyDecoder());
-                channel.pipeline().addLast(new RpcServerHandler());
+                channel.pipeline().addLast(new InvocationHandler());
             }
         });
         bootstrap.bind(serverConfig.getServerPort()).sync();
