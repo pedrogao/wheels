@@ -15,8 +15,10 @@ public abstract class SingleThreadEventLoop extends SingleThreadEventExecutor {
 
     public void register(SocketChannel socketChannel, NioEventLoop nioEventLoop) {
         if (inEventLoop(Thread.currentThread())) {
+            // register if current thread is the event loop thread
             register0(socketChannel, nioEventLoop);
         } else {
+            // or else, register task in the event loop thread
             nioEventLoop.execute(() -> register0(socketChannel, nioEventLoop));
         }
     }

@@ -53,15 +53,12 @@ public class NioEventLoop extends SingleThreadEventLoop {
             return;
         }
         Iterator<SelectionKey> i = selectedKeys.iterator();
-        for (; ; ) {
+        do {
             final SelectionKey k = i.next();
             i.remove();
             //处理就绪事件
             processSelectedKey(k);
-            if (!i.hasNext()) {
-                break;
-            }
-        }
+        } while (i.hasNext());
     }
 
     private void processSelectedKey(SelectionKey k) throws IOException {
@@ -88,7 +85,7 @@ public class NioEventLoop extends SingleThreadEventLoop {
                 select();
                 processSelectedKeys(selector.selectedKeys());
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error("NioEventLoop error: {}", e.getMessage());
             } finally {
                 runAllTasks();
             }

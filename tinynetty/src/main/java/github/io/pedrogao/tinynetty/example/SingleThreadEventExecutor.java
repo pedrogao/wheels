@@ -39,17 +39,17 @@ public abstract class SingleThreadEventExecutor implements Executor {
         }
 
         addTask(task);
-        startThread();
+        startThread(); // spawn a new thread
     }
 
     private void startThread() {
-        if (start) return;
+        if (start) return; // call only once
 
         start = true;
 
         new Thread(() -> {
-            thread = Thread.currentThread();
-            SingleThreadEventExecutor.this.run();
+            thread = Thread.currentThread(); // cache the new thread
+            SingleThreadEventExecutor.this.run(); // call the abstract method `run()`
         }).start();
 
         log.info("new thread started");
