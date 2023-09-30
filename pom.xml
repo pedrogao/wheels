@@ -23,6 +23,7 @@
     <module>tinyrpc</module>
     <module>tinynetty</module>
     <module>tinyspring</module>
+    <module>tinyweb</module>
   </modules>
 
 
