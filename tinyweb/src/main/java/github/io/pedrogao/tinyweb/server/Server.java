@@ -29,6 +29,7 @@ public final class Server implements AutoCloseable {
     public static final Logger log = LoggerFactory.getLogger(Server.class);
 
     private final ServerSocket serverSocket;
+
     private final String serverName;
 
     private final ExecutorService executorService;
@@ -36,6 +37,8 @@ public final class Server implements AutoCloseable {
     private final Set<ISocketWrapper> socketSet;
 
     private final int timeoutMillis;
+
+    private volatile boolean stopFlag = false;
 
     public Server(ServerSocket ss, String serverName) {
         this(ss, serverName, 7 * 1000);
@@ -66,7 +69,7 @@ public final class Server implements AutoCloseable {
     private void mainServerLoop() {
         Thread.currentThread().setName("main-server-loop");
         try {
-            while (true) {
+            while (!stopFlag) {
                 Socket freshSocket = serverSocket.accept();
                 ISocketWrapper sw = new SocketWrapper(freshSocket, timeoutMillis);
                 socketSet.add(sw);
@@ -105,6 +108,9 @@ public final class Server implements AutoCloseable {
     }
 
     public void close() throws IOException {
+        if (!stopFlag) {
+            stopFlag = true;
+        }
         // close all the sockets
         for (ISocketWrapper sw : socketSet) {
             sw.close();
