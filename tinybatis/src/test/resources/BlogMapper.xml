@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="github.io.pedrogao.tinybatis.BlogMapper">
+    <select id="selectBlog" resultType="github.io.pedrogao.tinybatis.Blog">
+        <!-- We can't implement placeholder same as mybatis, but save time like raw JDBC  -->
+        select * from blog where id = ?
+    </select>
+</mapper>
