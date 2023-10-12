@@ -26,7 +26,17 @@ public class MapperParser {
             String id = selectElement.attribute("id").getValue();
             String resultType = selectElement.attribute("resultType").getValue();
             String sql = selectElement.getTextTrim(); // SQL
-            SelectNode selectNode = new SelectNode(id, resultType, sql);
+
+            List<Element> ifElements = selectElement.elements("if");
+            List<IfNode> ifNodes = new ArrayList<>(ifElements.size());
+            for (Element ifElement : ifElements) {
+                String test = ifElement.attribute("test").getValue();
+                String content = ifElement.getTextTrim();
+                IfNode ifNode = new IfNode(test, content);
+                ifNodes.add(ifNode);
+            }
+
+            SelectNode selectNode = new SelectNode(id, resultType, sql, ifNodes);
             selectNodes.add(selectNode);
         }
         return new MapperNode(namespace, selectNodes);

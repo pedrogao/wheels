@@ -1,6 +1,7 @@
 package github.io.pedrogao.tinybatis;
 
 import java.io.InputStream;
+import java.util.Map;
 
 import github.io.pedrogao.tinybatis.session.SqlSession;
 import github.io.pedrogao.tinybatis.session.SqlSessionFactory;
@@ -23,6 +24,14 @@ public class GettingStarted {
 
         try (SqlSession session = sqlSessionFactory.openSession()) {
             Blog blog = (Blog) session.selectOne("github.io.pedrogao.tinybatis.BlogMapper.selectBlog", 1);
+            System.out.println(blog);
+
+            blog = (Blog) session.selectOne("github.io.pedrogao.tinybatis.BlogMapper.selectOne",
+                    Map.of("title", "Java"), 1, "Python");
+            System.out.println(blog);
+
+            blog = (Blog) session.selectOne("github.io.pedrogao.tinybatis.BlogMapper.selectOne",
+                    Map.of("title", "Java"), 1, "Java");
             System.out.println(blog);
         }
     }

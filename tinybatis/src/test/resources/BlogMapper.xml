@@ -7,4 +7,11 @@
         <!-- We can't implement placeholder same as mybatis, but save time like raw JDBC  -->
         select * from blog where id = ?
     </select>
+
+    <select id="selectOne" resultType="github.io.pedrogao.tinybatis.Blog">
+        select * from blog where id = ?
+        <if test="title != null">
+            and title = ?
+        </if>
+    </select>
 </mapper>
