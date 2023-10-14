@@ -25,6 +25,7 @@
         <module>tinyspring</module>
         <module>tinyweb</module>
         <module>tinybatis</module>
+        <module>tdd</module>
     </modules>
 
 
