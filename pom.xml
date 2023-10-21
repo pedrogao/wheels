@@ -26,6 +26,7 @@
         <module>tinyweb</module>
         <module>tinybatis</module>
         <module>tdd</module>
+        <module>patterns</module>
     </modules>
 
 
